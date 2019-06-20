@@ -1,0 +1,10 @@
+# Dependency directory
+node_modules
+
+# Build directories
+public
+
+# Editor
+.idea
+config.js
+
