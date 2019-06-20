@@ -1,6 +1,6 @@
 # RA Demo UI
 
-The easiest way to create a nio-powered UI is to start with our [UI scaffold](https://github.com/niolabs/ui-scaffold). It gets you up and running in minutes.
+A nio-powered UI.
 
 ## What’s in the box
 
