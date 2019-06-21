@@ -63,7 +63,7 @@ class Page extends React.Component {
               <b>Plants</b>
               <hr />
               <div className="data-holder">
-                {Object.keys(plants).map(k => (
+                {Object.keys(plants).length ? Object.keys(plants).map(k => (
                   <Row noGutters key={k} onClick={() => this.togglePlant(k)}>
                     <Col xs="4">
                       {k}
@@ -75,14 +75,16 @@ class Page extends React.Component {
                       <i className={`fa fa-${plants[k].visible ? 'check' : 'times'}`} />
                     </Col>
                   </Row>
-                ))}
+                )) : (
+                  <Loader />
+                )}
               </div>
             </Col>
             <Col md="6">
               <b>Machines</b>
               <hr />
               <div className="data-holder">
-                {Object.keys(machines).filter(k => plants[machines[k].plant].visible).map(k => (
+                {Object.keys(machines).length ? Object.keys(machines).filter(k => plants[machines[k].plant].visible).map(k => (
                   <Row noGutters key={k} onClick={() => this.toggleMachine(k)}>
                     <Col xs="4">
                       {k} ({machines[k].plant})
@@ -94,7 +96,9 @@ class Page extends React.Component {
                       <i className={`fa fa-${machines[k].visible ? 'check' : 'times'}`} />
                     </Col>
                   </Row>
-                ))}
+                )) : (
+                  <Loader />
+                )}
               </div>
             </Col>
             <Col xs="12" id="chart-holder">
@@ -155,7 +159,7 @@ class Page extends React.Component {
                   <hr className="my-1" />
                 </Col>
               </Row>
-              {Object.keys(graphdata).map(d => (
+              {Object.keys(graphdata).length ? Object.keys(graphdata).map(d => (
                 <Row key={d}>
                   <Col xs="6">
                     {d}
@@ -173,7 +177,11 @@ class Page extends React.Component {
                     <hr className="my-1" />
                   </Col>
                 </Row>
-              ))}
+              )) : (
+                <div className="data-holder">
+                  <Loader />
+                </div>
+              )}
             </Col>
           </Row>
         </CardBody>
