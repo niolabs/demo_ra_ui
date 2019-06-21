@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardBody, Row, Col, Chart } from '@nio/ui-kit';
+import { Card, CardBody, Row, Col, Chart, Loader } from '@nio/ui-kit';
 import { withPubkeeper } from '../providers/pubkeeper';
 
 class Page extends React.Component {
@@ -97,10 +97,11 @@ class Page extends React.Component {
                 ))}
               </div>
             </Col>
-            <Col xs="12">
-              {chartLimits.maxX && chartLimits.maxY && (
+            <Col xs="12" id="chart-holder">
+              {chartLimits.maxX && chartLimits.maxY ? (
                 <Chart
                   type="bubble"
+                  height="250px"
                   options={{
                     title: { text: `Last Update: ${lastupdate}` },
                     chart: {
@@ -131,7 +132,7 @@ class Page extends React.Component {
                   }}
                   series={graphData}
                 />
-              )}
+              ) : <Loader />}
             </Col>
             <Col xs="12">
               <Row>
