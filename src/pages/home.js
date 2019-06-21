@@ -3,7 +3,7 @@ import { Card, CardBody, Row, Col, Chart, Loader } from '@nio/ui-kit';
 import { withPubkeeper } from '../providers/pubkeeper';
 
 class Page extends React.Component {
-  state = { plants: {}, machines: {}, graphdata:{}, chartLimits: { minX: 0, maxX: 0, minY: 0, maxY: 0 }, lastupdate: false };
+  state = { plants: {}, machines: {}, graphdata:{}, nozzles: {}, chartLimits: { minX: 0, maxX: 0, minY: 0, maxY: 0 }, lastupdate: false };
 
   componentDidMount = () => {
     const { pkClient } = this.props;
@@ -13,7 +13,7 @@ class Page extends React.Component {
   };
 
   writeDataToState = (data) => {
-    const { plants, machines, graphdata, chartLimits } = this.state;
+    const { plants, machines, nozzles, graphdata, chartLimits } = this.state;
     let { lastupdate } = this.state;
     const json = new TextDecoder().decode(data);
     const newData = JSON.parse(json);
@@ -21,7 +21,8 @@ class Page extends React.Component {
     newData.map(m => {
       plants[m.plant] = { last: new Date(m.timestamp).toLocaleString(), visible: plants[m.plant] ? plants[m.plant].visible : true };
       machines[m.machine] = { last: new Date(m.timestamp).toLocaleString(), plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
-      graphdata[m.machine] = { plant: m.plant, x: m.reject_sum_percent * 100, y: m.reject_sum, z: m.reject_factor };
+      nozzles[m.nozzle_id] = { last: new Date(m.timestamp).toLocaleString(), plant: m.plant, machine: m.machine, visible: nozzles[m.nozzle_id] ? nozzles[m.nozzle_id].visible : true };
+      graphdata[m.nozzle_id] = { plant: m.plant, machine: m.machine, x: m.reject_sum_percent * 100, y: m.reject_sum, z: m.reject_factor };
       lastupdate = new Date(m.timestamp).toLocaleString();
 
     });
@@ -31,7 +32,7 @@ class Page extends React.Component {
       if (graphdata[m].y < chartLimits.minY) chartLimits.minY = graphdata[m].y;
       if (graphdata[m].y > chartLimits.maxY) chartLimits.maxY = graphdata[m].y;
     });
-    this.setState({ plants, machines, graphdata, chartLimits, lastupdate });
+    this.setState({ plants, machines, nozzles, graphdata, chartLimits, lastupdate });
   };
 
   togglePlant = (k) => {
@@ -46,10 +47,18 @@ class Page extends React.Component {
     this.setState({ machines });
   };
 
-  render = () => {
-    const { plants, machines, graphdata, chartLimits, lastupdate } = this.state;
+  toggleNozzle = (k) => {
+    const { nozzles } = this.state;
+    nozzles[k].visible = !nozzles[k].visible;
+    this.setState({ nozzles });
+  };
 
-    const graphData = Object.keys(graphdata).filter(k => machines[k].visible && plants[graphdata[k].plant].visible).map(d => ({ name: d,  data: [[graphdata[d].x, graphdata[d].y, graphdata[d].z]] }));
+  render = () => {
+    const { plants, machines, nozzles, graphdata, chartLimits, lastupdate } = this.state;
+
+    const graphData = Object.keys(graphdata)
+    .filter(k => nozzles[k].visible && machines[graphdata[k].machine].visible && plants[graphdata[k].plant].visible)
+    .map(d => ({ name: d,  data: [[graphdata[d].x, graphdata[d].y, graphdata[d].z]] }));
 
     console.log(chartLimits);
 
@@ -59,20 +68,20 @@ class Page extends React.Component {
           <h2 className="m-0">RA PoC</h2>
           <hr />
           <Row>
-            <Col md="6">
+            <Col md="4">
               <b>Plants</b>
-              <hr />
+              <hr className="mb-0" />
               <div className="data-holder">
                 {Object.keys(plants).length ? Object.keys(plants).map(k => (
                   <Row noGutters key={k} onClick={() => this.togglePlant(k)}>
-                    <Col xs="4">
+                    <Col xs="3">
                       {k}
                     </Col>
-                    <Col xs="4">
+                    <Col xs="6">
                       {plants[k].last}
                     </Col>
-                    <Col xs="4" className="text-right">
-                      <i className={`fa fa-${plants[k].visible ? 'check' : 'times'}`} />
+                    <Col xs="3" className="text-right">
+                      <i className={`mr-1 fa ${plants[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
                     </Col>
                   </Row>
                 )) : (
@@ -80,20 +89,41 @@ class Page extends React.Component {
                 )}
               </div>
             </Col>
-            <Col md="6">
+            <Col md="4">
               <b>Machines</b>
-              <hr />
+              <hr className="mb-0" />
               <div className="data-holder">
                 {Object.keys(machines).length ? Object.keys(machines).filter(k => plants[machines[k].plant].visible).map(k => (
                   <Row noGutters key={k} onClick={() => this.toggleMachine(k)}>
-                    <Col xs="4">
-                      {k} ({machines[k].plant})
+                    <Col xs="3">
+                      {k}
                     </Col>
-                    <Col xs="4">
+                    <Col xs="6">
                       {machines[k].last}
                     </Col>
-                    <Col xs="4" className="text-right">
-                      <i className={`fa fa-${machines[k].visible ? 'check' : 'times'}`} />
+                    <Col xs="3" className="text-right">
+                      <i className={`mr-1 fa ${machines[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
+                    </Col>
+                  </Row>
+                )) : (
+                  <Loader />
+                )}
+              </div>
+            </Col>
+            <Col md="4">
+              <b>Nozzles</b>
+              <hr className="mb-0" />
+              <div className="data-holder">
+                {Object.keys(nozzles).length ? Object.keys(nozzles).filter(k => plants[nozzles[k].plant].visible && machines[nozzles[k].machine].visible).map(k => (
+                  <Row noGutters key={k} onClick={() => this.toggleNozzle(k)}>
+                    <Col xs="3">
+                      {k}
+                    </Col>
+                    <Col xs="6">
+                      {nozzles[k].last}
+                    </Col>
+                    <Col xs="3" className="text-right">
+                      <i className={`mr-1 fa ${nozzles[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
                     </Col>
                   </Row>
                 )) : (
@@ -118,7 +148,7 @@ class Page extends React.Component {
                       enabled: false,
                     },
                     xaxis: {
-                      min: -.0001,
+                      min: 0,
                       max: chartLimits.maxX * 1.2,
                       tickAmount: 5,
                       labels: {
@@ -126,7 +156,7 @@ class Page extends React.Component {
                       }
                     },
                     yaxis: {
-                      min: -.0001,
+                      min: 0,
                       max: chartLimits.maxY * 1.2,
                       tickAmount: 5,
                       labels: {
@@ -143,17 +173,23 @@ class Page extends React.Component {
                 <Col xs="12">
                   <hr className="my-1" />
                 </Col>
-                <Col xs="6">
+                <Col xs="2">
+                  <b>plant</b>
+                </Col>
+                <Col xs="2">
                   <b>machine</b>
                 </Col>
                 <Col xs="2">
-                  <b>x</b>
+                  <b>nozzle</b>
                 </Col>
                 <Col xs="2">
-                  <b>y</b>
+                  <b>reject sum %</b>
                 </Col>
                 <Col xs="2">
-                  <b>z</b>
+                  <b>reject sum</b>
+                </Col>
+                <Col xs="2">
+                  <b>reject factor</b>
                 </Col>
                 <Col xs="12">
                   <hr className="my-1" />
@@ -161,17 +197,23 @@ class Page extends React.Component {
               </Row>
               {Object.keys(graphdata).length ? Object.keys(graphdata).map(d => (
                 <Row key={d}>
-                  <Col xs="6">
+                  <Col xs="2">
+                    {graphdata[d].plant}
+                  </Col>
+                  <Col xs="2">
+                    {graphdata[d].machine}
+                  </Col>
+                  <Col xs="2">
                     {d}
                   </Col>
                   <Col xs="2">
-                    {graphdata[d].x}%
+                    {parseFloat(graphdata[d].x).toFixed(6)}%
                   </Col>
                   <Col xs="2">
                     {graphdata[d].y}
                   </Col>
                   <Col xs="2">
-                    {graphdata[d].z}
+                    {parseFloat(graphdata[d].z).toFixed(6)}
                   </Col>
                   <Col xs="12">
                     <hr className="my-1" />

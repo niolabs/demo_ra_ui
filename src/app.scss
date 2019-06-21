@@ -8,10 +8,10 @@
 
 .data-holder {
   border-bottom: 1px solid $gray-lightest;
-  min-height: 85px;
-  max-height: 150px;
+  height: 100px;
   overflow-y: auto;
   margin-bottom: 20px;
+  padding: 10px 0;
 }
 
 #chart-holder {
