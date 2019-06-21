@@ -19,11 +19,11 @@ class Page extends React.Component {
     const newData = JSON.parse(json);
 
     newData.map(m => {
-      plants[m.plant] = { last: new Date(m.timestamp).toLocaleString(), visible: plants[m.plant] ? plants[m.plant].visible : true };
-      machines[m.machine] = { last: new Date(m.timestamp).toLocaleString(), plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
-      nozzles[m.nozzle_id] = { last: new Date(m.timestamp).toLocaleString(), plant: m.plant, machine: m.machine, visible: nozzles[m.nozzle_id] ? nozzles[m.nozzle_id].visible : true };
+      plants[m.plant] = { last: new Date(m.timestamp).toUTCString(), visible: plants[m.plant] ? plants[m.plant].visible : true };
+      machines[m.machine] = { last: new Date(m.timestamp).toUTCString(), plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
+      nozzles[m.nozzle_id] = { last: new Date(m.timestamp).toUTCString(), plant: m.plant, machine: m.machine, visible: nozzles[m.nozzle_id] ? nozzles[m.nozzle_id].visible : true };
       graphdata[m.nozzle_id] = { plant: m.plant, machine: m.machine, x: m.reject_sum_percent * 100, y: m.reject_sum, z: m.reject_factor };
-      lastupdate = new Date(m.timestamp).toLocaleString();
+      lastupdate = new Date(m.timestamp).toUTCString();
 
     });
     Object.keys(graphdata).map(m => {
@@ -53,14 +53,30 @@ class Page extends React.Component {
     this.setState({ nozzles });
   };
 
+  generateTooltip = ({ name, data }) => {
+    const { nozzles } = this.state;
+    let tooltip = '<div class="card"><div class="tooltip"><b>';
+    tooltip += `nozzle ${name}`;
+    tooltip += '</b><hr class="my-1" />';
+    tooltip += `plant: ${nozzles[name].plant}`;
+    tooltip += '<br />';
+    tooltip += `machine: ${nozzles[name].machine}`;
+    tooltip += '<hr class="my-1" />';
+    tooltip += `reject sum %: ${parseFloat(data[0].x).toFixed(6)}`;
+    tooltip += '<br />';
+    tooltip += `reject sum: ${data[0].y}`;
+    tooltip += '<br />';
+    tooltip += `reject factor: ${parseFloat(data[0].z).toFixed(6)}`;
+    tooltip += '</div></div>';
+    return tooltip;
+  };
+
   render = () => {
     const { plants, machines, nozzles, graphdata, chartLimits, lastupdate } = this.state;
 
     const graphData = Object.keys(graphdata)
     .filter(k => nozzles[k].visible && machines[graphdata[k].machine].visible && plants[graphdata[k].plant].visible)
-    .map(d => ({ name: d,  data: [[graphdata[d].x, graphdata[d].y, graphdata[d].z]] }));
-
-    console.log(chartLimits);
+    .map(d => ({ name: d,  data: [{ x: graphdata[d].x, y: graphdata[d].y, z: graphdata[d].z }] }));
 
     return (
       <Card>
@@ -74,13 +90,13 @@ class Page extends React.Component {
               <div className="data-holder">
                 {Object.keys(plants).length ? Object.keys(plants).map(k => (
                   <Row noGutters key={k} onClick={() => this.togglePlant(k)}>
-                    <Col xs="3">
+                    <Col xs="2">
                       {k}
                     </Col>
-                    <Col xs="6">
+                    <Col xs="8">
                       {plants[k].last}
                     </Col>
-                    <Col xs="3" className="text-right">
+                    <Col xs="2" className="text-right">
                       <i className={`mr-1 fa ${plants[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
                     </Col>
                   </Row>
@@ -95,13 +111,13 @@ class Page extends React.Component {
               <div className="data-holder">
                 {Object.keys(machines).length ? Object.keys(machines).filter(k => plants[machines[k].plant].visible).map(k => (
                   <Row noGutters key={k} onClick={() => this.toggleMachine(k)}>
-                    <Col xs="3">
+                    <Col xs="2">
                       {k}
                     </Col>
-                    <Col xs="6">
+                    <Col xs="8">
                       {machines[k].last}
                     </Col>
-                    <Col xs="3" className="text-right">
+                    <Col xs="2" className="text-right">
                       <i className={`mr-1 fa ${machines[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
                     </Col>
                   </Row>
@@ -116,13 +132,13 @@ class Page extends React.Component {
               <div className="data-holder">
                 {Object.keys(nozzles).length ? Object.keys(nozzles).filter(k => plants[nozzles[k].plant].visible && machines[nozzles[k].machine].visible).map(k => (
                   <Row noGutters key={k} onClick={() => this.toggleNozzle(k)}>
-                    <Col xs="3">
+                    <Col xs="2">
                       {k}
                     </Col>
-                    <Col xs="6">
+                    <Col xs="8">
                       {nozzles[k].last}
                     </Col>
-                    <Col xs="3" className="text-right">
+                    <Col xs="2" className="text-right">
                       <i className={`mr-1 fa ${nozzles[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
                     </Col>
                   </Row>
@@ -135,14 +151,21 @@ class Page extends React.Component {
               {chartLimits.maxX && chartLimits.maxY ? (
                 <Chart
                   type="bubble"
-                  height="250px"
+                  height="350px"
                   options={{
                     title: { text: `Last Update: ${lastupdate}` },
                     chart: {
                       zoom: {
-                        enabled: true,
-                        type: 'xy'
-                      }
+                        enabled: false,
+                      },
+                      toolbar: {
+                        show: false,
+                      },
+                    },
+                    legend: {
+                      itemMargin: {
+                        horizontal: 10,
+                      },
                     },
                     dataLabels: {
                       enabled: false,
@@ -153,16 +176,25 @@ class Page extends React.Component {
                       tickAmount: 5,
                       labels: {
                         formatter: val => `${parseFloat(val).toFixed(5)}%`
-                      }
+                      },
+                      title: {
+                        text: 'reject sum %',
+                      },
                     },
                     yaxis: {
                       min: 0,
                       max: chartLimits.maxY * 1.2,
                       tickAmount: 5,
                       labels: {
-                        formatter: val => parseFloat(val).toFixed(5)
-                      }
-                    }
+                        formatter: val => Math.round(val)
+                      },
+                      title: {
+                        text: 'reject sum',
+                      },
+                    },
+                    tooltip: {
+                      custom: ({series, seriesIndex, dataPointIndex, w}) => this.generateTooltip(w.config.series[seriesIndex]),
+                    },
                   }}
                   series={graphData}
                 />
