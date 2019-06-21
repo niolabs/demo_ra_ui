@@ -175,7 +175,7 @@ class Page extends React.Component {
                       max: chartLimits.maxX * 1.2,
                       tickAmount: 5,
                       labels: {
-                        formatter: val => `${parseFloat(val).toFixed(5)}%`
+                        formatter: val => `${Math.round(val)}%`
                       },
                       title: {
                         text: 'reject sum %',
