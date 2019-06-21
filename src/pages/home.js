@@ -153,7 +153,7 @@ class Page extends React.Component {
                   type="bubble"
                   height="250px"
                   options={{
-                    title: { text: `Last Update: ${lastupdate}` },
+                    // title: { text: `Last Update: ${lastupdate}` },
                     chart: {
                       zoom: {
                         enabled: false,
