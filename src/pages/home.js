@@ -21,7 +21,7 @@ class Page extends React.Component {
     newData.map(m => {
       plants[m.plant] = { last: new Date(m.timestamp).toLocaleString(), visible: plants[m.plant] ? plants[m.plant].visible : true };
       machines[m.machine] = { last: new Date(m.timestamp).toLocaleString(), plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
-      graphdata[m.machine] = { plant: m.plant, x: m.reject_sum_percent, y: m.reject_sum, z: m.reject_factor };
+      graphdata[m.machine] = { plant: m.plant, x: m.reject_sum_percent * 100, y: m.reject_sum, z: m.reject_factor };
       lastupdate = new Date(m.timestamp).toLocaleString();
 
     });
@@ -117,7 +117,7 @@ class Page extends React.Component {
                       max: chartLimits.maxX * 1.2,
                       tickAmount: 5,
                       labels: {
-                        formatter: val => parseFloat(val).toFixed(5)
+                        formatter: val => `${parseFloat(val).toFixed(5)}%`
                       }
                     },
                     yaxis: {
@@ -160,7 +160,7 @@ class Page extends React.Component {
                     {d}
                   </Col>
                   <Col xs="2">
-                    {graphdata[d].x}
+                    {graphdata[d].x}%
                   </Col>
                   <Col xs="2">
                     {graphdata[d].y}
