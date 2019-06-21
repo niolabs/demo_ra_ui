@@ -10,7 +10,7 @@
   "author": "niolabs",
   "license": "Apache-2.0",
   "dependencies": {
-    "@nio/ui-kit": "^2.0.0",
+    "@nio/ui-kit": "^2.0.1",
     "@pubkeeper/browser-client": "^4.0.4",
     "auth0-js": "^9.10.4",
     "font-awesome": "^4.7.0",
