@@ -8,14 +8,16 @@
 
 .data-holder {
   border-bottom: 1px solid $gray-lightest;
-  height: 100px;
+  height: 120px;
   overflow-y: auto;
+  overflow-x: hidden;
   margin-bottom: 20px;
   padding: 10px 0;
+  white-space: nowrap;
 }
 
 #chart-holder {
-  min-height: 350px;
+  min-height: 250px;
 }
 
 .tooltip {

@@ -151,7 +151,7 @@ class Page extends React.Component {
               {chartLimits.maxX && chartLimits.maxY ? (
                 <Chart
                   type="bubble"
-                  height="350px"
+                  height="250px"
                   options={{
                     title: { text: `Last Update: ${lastupdate}` },
                     chart: {
@@ -227,35 +227,35 @@ class Page extends React.Component {
                   <hr className="my-1" />
                 </Col>
               </Row>
-              {Object.keys(graphdata).length ? Object.keys(graphdata).map(d => (
-                <Row key={d}>
-                  <Col xs="2">
-                    {graphdata[d].plant}
-                  </Col>
-                  <Col xs="2">
-                    {graphdata[d].machine}
-                  </Col>
-                  <Col xs="2">
-                    {d}
-                  </Col>
-                  <Col xs="2">
-                    {parseFloat(graphdata[d].x).toFixed(6)}%
-                  </Col>
-                  <Col xs="2">
-                    {graphdata[d].y}
-                  </Col>
-                  <Col xs="2">
-                    {parseFloat(graphdata[d].z).toFixed(6)}
-                  </Col>
-                  <Col xs="12">
-                    <hr className="my-1" />
-                  </Col>
-                </Row>
-              )) : (
-                <div className="data-holder">
+              <div className="data-holder">
+                {Object.keys(graphdata).length ? Object.keys(graphdata).map(d => (
+                  <Row key={d}>
+                    <Col xs="2">
+                      {graphdata[d].plant}
+                    </Col>
+                    <Col xs="2">
+                      {graphdata[d].machine}
+                    </Col>
+                    <Col xs="2">
+                      {d}
+                    </Col>
+                    <Col xs="2">
+                      {parseFloat(graphdata[d].x).toFixed(6)}%
+                    </Col>
+                    <Col xs="2">
+                      {graphdata[d].y}
+                    </Col>
+                    <Col xs="2">
+                      {parseFloat(graphdata[d].z).toFixed(6)}
+                    </Col>
+                    <Col xs="12">
+                      <hr className="my-1" />
+                    </Col>
+                  </Row>
+                )) : (
                   <Loader />
-                </div>
-              )}
+                )}
+              </div>
             </Col>
           </Row>
         </CardBody>
