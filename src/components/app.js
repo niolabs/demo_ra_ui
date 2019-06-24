@@ -21,7 +21,10 @@ class App extends Component {
           <Collapse isOpen={navOpen} navbar>
             <Nav className="ml-auto" navbar>
               <NavItem>
-                <NavLink onClick={() => this.setState({ navOpen: false })} exact to="/">Home</NavLink>
+                <NavLink onClick={() => this.setState({ navOpen: false })} exact to="/">Dashboard</NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink onClick={() => this.setState({ navOpen: false })} exact to="/thresholds">Thresholds</NavLink>
               </NavItem>
             </Nav>
           </Collapse>

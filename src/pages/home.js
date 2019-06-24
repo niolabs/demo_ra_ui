@@ -1,267 +1,103 @@
 import React from 'react';
-import { Card, CardBody, Row, Col, Chart, Loader } from '@nio/ui-kit';
+import { Card, CardBody, Row, Col, Chart } from '@nio/ui-kit';
 import { withPubkeeper } from '../providers/pubkeeper';
+import Alerts from '../components/alerts';
+import Chooser from '../components/chooser';
+import Nozzles from '../components/nozzles';
 
-class Page extends React.Component {
-  state = { plants: {}, machines: {}, graphdata:{}, nozzles: {}, chartLimits: { minX: 0, maxX: 0, minY: 0, maxY: 0 }, lastupdate: false };
-
-  componentDidMount = () => {
-    const { pkClient } = this.props;
-    if (pkClient) {
-      pkClient.addPatron('nozzle_plot', patron => patron.on('message', this.writeDataToState));
-    }
+class Home extends React.Component {
+  state = {
+    nozzleSort: { sortBy: 'id', asc: true }
   };
 
-  writeDataToState = (data) => {
-    const { plants, machines, nozzles, graphdata, chartLimits } = this.state;
-    let { lastupdate } = this.state;
-    const json = new TextDecoder().decode(data);
-    const newData = JSON.parse(json);
-
-    newData.map(m => {
-      plants[m.plant] = { last: new Date(m.timestamp).toUTCString(), visible: plants[m.plant] ? plants[m.plant].visible : true };
-      machines[m.machine] = { last: new Date(m.timestamp).toUTCString(), plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
-      nozzles[m.nozzle_id] = { last: new Date(m.timestamp).toUTCString(), plant: m.plant, machine: m.machine, visible: nozzles[m.nozzle_id] ? nozzles[m.nozzle_id].visible : true };
-      graphdata[m.nozzle_id] = { plant: m.plant, machine: m.machine, x: m.reject_sum_percent * 100, y: m.reject_sum, z: m.reject_factor };
-      lastupdate = new Date(m.timestamp).toUTCString();
-
-    });
-    Object.keys(graphdata).map(m => {
-      if (graphdata[m].x < chartLimits.minX) chartLimits.minX = graphdata[m].x;
-      if (graphdata[m].x > chartLimits.maxX) chartLimits.maxX = graphdata[m].x;
-      if (graphdata[m].y < chartLimits.minY) chartLimits.minY = graphdata[m].y;
-      if (graphdata[m].y > chartLimits.maxY) chartLimits.maxY = graphdata[m].y;
-    });
-    this.setState({ plants, machines, nozzles, graphdata, chartLimits, lastupdate });
-  };
-
-  togglePlant = (k) => {
-    const { plants } = this.state;
-    plants[k].visible = !plants[k].visible;
-    this.setState({ plants });
-  };
-
-  toggleMachine = (k) => {
-    const { machines } = this.state;
-    machines[k].visible = !machines[k].visible;
-    this.setState({ machines });
-  };
-
-  toggleNozzle = (k) => {
-    const { nozzles } = this.state;
-    nozzles[k].visible = !nozzles[k].visible;
-    this.setState({ nozzles });
+  sortNozzles = (e) => {
+    const { nozzleSort } = this.state;
+    const newKey = e.currentTarget.getAttribute('data-sort');
+    nozzleSort.asc = nozzleSort.sortBy === newKey ? !nozzleSort.asc : true;
+    nozzleSort.sortBy = newKey;
+    this.setState({ nozzleSort });
   };
 
   generateTooltip = ({ name, data }) => {
-    const { nozzles } = this.state;
+    const { nozzles, maxZ } = this.props;
+    const nozzleIndex = nozzles.findIndex(n => n.id === name);
     let tooltip = '<div class="card"><div class="tooltip"><b>';
     tooltip += `nozzle ${name}`;
     tooltip += '</b><hr class="my-1" />';
-    tooltip += `plant: ${nozzles[name].plant}`;
+    tooltip += `plant: ${nozzles[nozzleIndex].plant}`;
     tooltip += '<br />';
-    tooltip += `machine: ${nozzles[name].machine}`;
+    tooltip += `machine: ${nozzles[nozzleIndex].machine}`;
     tooltip += '<hr class="my-1" />';
     tooltip += `reject sum %: ${parseFloat(data[0].x).toFixed(6)}`;
     tooltip += '<br />';
     tooltip += `reject sum: ${data[0].y}`;
     tooltip += '<br />';
-    tooltip += `reject factor: ${parseFloat(data[0].z).toFixed(6)}`;
+    tooltip += `reject factor: ${parseFloat(data[0].z - (maxZ / 3)).toFixed(6)}`;
     tooltip += '</div></div>';
     return tooltip;
   };
 
   render = () => {
-    const { plants, machines, nozzles, graphdata, chartLimits, lastupdate } = this.state;
-
-    const graphData = Object.keys(graphdata)
-    .filter(k => nozzles[k].visible && machines[graphdata[k].machine].visible && plants[graphdata[k].plant].visible)
-    .map(d => ({ name: d,  data: [{ x: graphdata[d].x, y: graphdata[d].y, z: graphdata[d].z }] }));
+    const { plants, machines, nozzles, maxX, togglePlant, toggleMachine, toggleNozzle, alerts, graphData } = this.props;
+    const { nozzleSort: { sortBy, asc } } = this.state;
 
     return (
       <Card>
         <CardBody className="p-3">
-          <h2 className="m-0">RA PoC</h2>
+          <h2 className="m-0">Dashboard</h2>
           <hr />
           <Row>
-            <Col md="4">
-              <b>Plants</b>
-              <hr className="mb-0" />
-              <div className="data-holder">
-                {Object.keys(plants).length ? Object.keys(plants).map(k => (
-                  <Row noGutters key={k} onClick={() => this.togglePlant(k)}>
-                    <Col xs="2">
-                      {k}
-                    </Col>
-                    <Col xs="8">
-                      {plants[k].last}
-                    </Col>
-                    <Col xs="2" className="text-right">
-                      <i className={`mr-1 fa ${plants[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
-                    </Col>
-                  </Row>
-                )) : (
-                  <Loader />
-                )}
-              </div>
+            <Col lg="2" xs="6">
+              <Chooser
+                label="Plants"
+                items={Object.values(plants)}
+                toggle={togglePlant}
+              />
             </Col>
-            <Col md="4">
-              <b>Machines</b>
-              <hr className="mb-0" />
-              <div className="data-holder">
-                {Object.keys(machines).length ? Object.keys(machines).filter(k => plants[machines[k].plant].visible).map(k => (
-                  <Row noGutters key={k} onClick={() => this.toggleMachine(k)}>
-                    <Col xs="2">
-                      {k}
-                    </Col>
-                    <Col xs="8">
-                      {machines[k].last}
-                    </Col>
-                    <Col xs="2" className="text-right">
-                      <i className={`mr-1 fa ${machines[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
-                    </Col>
-                  </Row>
-                )) : (
-                  <Loader />
-                )}
-              </div>
+            <Col lg="2" xs="6">
+              <Chooser
+                label="Machines"
+                items={Object.values(machines).filter(k => plants[k.plant].visible)}
+                toggle={toggleMachine}
+              />
             </Col>
-            <Col md="4">
-              <b>Nozzles</b>
-              <hr className="mb-0" />
-              <div className="data-holder">
-                {Object.keys(nozzles).length ? Object.keys(nozzles).filter(k => plants[nozzles[k].plant].visible && machines[nozzles[k].machine].visible).map(k => (
-                  <Row noGutters key={k} onClick={() => this.toggleNozzle(k)}>
-                    <Col xs="2">
-                      {k}
-                    </Col>
-                    <Col xs="8">
-                      {nozzles[k].last}
-                    </Col>
-                    <Col xs="2" className="text-right">
-                      <i className={`mr-1 fa ${nozzles[k].visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
-                    </Col>
-                  </Row>
-                )) : (
-                  <Loader />
-                )}
-              </div>
+            <Col lg="8" xs="12">
+              <Nozzles
+                items={nozzles.filter(n => n.id !== 'placeholder' && plants[n.plant].visible && machines[n.machine].visible).sort((a, b) => (asc) ? b[sortBy] > a[sortBy] ? -1 : 1 : b[sortBy] < a[sortBy] ? -1 : 1)}
+                asc={asc}
+                sortBy={sortBy}
+                sort={this.sortNozzles}
+                toggle={toggleNozzle}
+              />
             </Col>
+          </Row>
+          <Row>
             <Col xs="12" id="chart-holder">
-              {chartLimits.maxX && chartLimits.maxY ? (
+              {graphData.length > 1 ? (
                 <Chart
                   type="bubble"
-                  height="250px"
+                  height="100%"
                   options={{
-                    // title: { text: `Last Update: ${lastupdate}` },
-                    chart: {
-                      zoom: {
-                        enabled: false,
-                      },
-                      toolbar: {
-                        show: false,
-                      },
-                    },
-                    legend: {
-                      itemMargin: {
-                        horizontal: 10,
-                      },
-                    },
-                    dataLabels: {
-                      enabled: false,
-                    },
-                    xaxis: {
-                      min: 0,
-                      max: chartLimits.maxX * 1.2,
-                      tickAmount: 5,
-                      labels: {
-                        formatter: val => `${Math.round(val)}%`
-                      },
-                      title: {
-                        text: 'reject sum %',
-                      },
-                    },
-                    yaxis: {
-                      min: 0,
-                      max: chartLimits.maxY * 1.2,
-                      tickAmount: 5,
-                      labels: {
-                        formatter: val => Math.round(val)
-                      },
-                      title: {
-                        text: 'reject sum',
-                      },
-                    },
-                    tooltip: {
-                      custom: ({series, seriesIndex, dataPointIndex, w}) => this.generateTooltip(w.config.series[seriesIndex]),
-                    },
+                    chart: { zoom: { enabled: false }, toolbar: { show: false } },
+                    legend: { show: false },
+                    noData: { text: 'loading'},
+                    dataLabels: { enabled: false },
+                    xaxis: { min: 0, max: maxX * 1.2, tickAmount: 8, labels: { formatter: val => `${val.toFixed(2)}%`, align: 'center', offsetX: -5 }, title: { text: 'reject sum %' }},
+                    yaxis: { min: 0, max: (max) => max * 1.2, tickAmount:  8, labels: { formatter: val => val.toFixed(2) }, title: { text: 'reject sum' }},
+                    tooltip: { custom: ({series, seriesIndex, dataPointIndex, w}) => this.generateTooltip(w.config.series[seriesIndex])},
                   }}
                   series={graphData}
                 />
-              ) : <Loader />}
-            </Col>
-            <Col xs="12">
-              <Row>
-                <Col xs="12">
-                  <hr className="my-1" />
-                </Col>
-                <Col xs="2">
-                  <b>plant</b>
-                </Col>
-                <Col xs="2">
-                  <b>machine</b>
-                </Col>
-                <Col xs="2">
-                  <b>nozzle</b>
-                </Col>
-                <Col xs="2">
-                  <b>reject sum %</b>
-                </Col>
-                <Col xs="2">
-                  <b>reject sum</b>
-                </Col>
-                <Col xs="2">
-                  <b>reject factor</b>
-                </Col>
-                <Col xs="12">
-                  <hr className="my-1" />
-                </Col>
-              </Row>
-              <div className="data-holder">
-                {Object.keys(graphdata).length ? Object.keys(graphdata).map(d => (
-                  <Row key={d}>
-                    <Col xs="2">
-                      {graphdata[d].plant}
-                    </Col>
-                    <Col xs="2">
-                      {graphdata[d].machine}
-                    </Col>
-                    <Col xs="2">
-                      {d}
-                    </Col>
-                    <Col xs="2">
-                      {parseFloat(graphdata[d].x).toFixed(6)}%
-                    </Col>
-                    <Col xs="2">
-                      {graphdata[d].y}
-                    </Col>
-                    <Col xs="2">
-                      {parseFloat(graphdata[d].z).toFixed(6)}
-                    </Col>
-                    <Col xs="12">
-                      <hr className="my-1" />
-                    </Col>
-                  </Row>
-                )) : (
-                  <Loader />
-                )}
-              </div>
+              ) : (
+                <div className="text-center pt-5">no data...</div>
+              )}
             </Col>
           </Row>
+          <Alerts alerts={alerts} />
         </CardBody>
       </Card>
     );
   };
 }
 
-export default withPubkeeper(Page);
+export default withPubkeeper(Home);
