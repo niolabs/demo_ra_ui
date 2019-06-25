@@ -16,7 +16,7 @@ export class PubkeeperProvider extends React.Component {
     nozzleSort: { sortBy: 'id', asc: true },
   };
 
-  isDev = true;
+  isDev = false;
 
   componentDidMount = async () => {
     if (this.isDev) {

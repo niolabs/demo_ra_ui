@@ -14,7 +14,7 @@ export default withGraphData(({ items, maxX, nozzles, maxZ }) => items.length > 
       dataLabels: { enabled: false },
       xaxis: { min: 0, max: maxX * 1.2, tickAmount: 8, labels: { formatter: val => `${val.toFixed(2)}%`, align: 'center', offsetX: -5 }, title: { text: 'reject sum %' } },
       yaxis: { min: 0, max: max => max * 1.2, tickAmount: 8, labels: { formatter: val => val.toFixed(2) }, title: { text: 'reject sum' } },
-      tooltip: { custom: ({ seriesIndex, w }) => tooltip({ name: w.config.series[seriesIndex].name, data: w.config.series[seriesIndex].data, nozzles, maxZ }) },
+      tooltip: { intersect: true, custom: ({ seriesIndex, w }) => tooltip({ name: w.config.series[seriesIndex].name, data: w.config.series[seriesIndex].data, nozzles, maxZ }) },
     }}
     series={items}
   />
