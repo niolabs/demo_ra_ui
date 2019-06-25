@@ -1,7 +1,8 @@
 import React from 'react';
 import { Row, Col } from '@nio/ui-kit';
+import { withNozzles } from '../providers/pubkeeper';
 
-export default ({ items, asc, sortBy, sort, toggle }) => (
+export default withNozzles(({ items, asc, sortBy, sort, toggle }) => (
   <>
     <Row noGutters>
       <Col xs="2" className="text-nowrap nozzle-sort" data-sort="id" onClick={sort}>
@@ -60,4 +61,4 @@ export default ({ items, asc, sortBy, sort, toggle }) => (
       ))}
     </div>
   </>
-);
+));

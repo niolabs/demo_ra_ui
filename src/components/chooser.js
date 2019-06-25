@@ -1,7 +1,8 @@
 import React from 'react';
 import { Row, Col } from '@nio/ui-kit';
+import { withPlants, withMachines } from '../providers/pubkeeper';
 
-export default ({ label, items, toggle }) => (
+const chooser = ({ label, items, toggle }) => (
   <>
     <Row noGutters>
       <Col xs="10">
@@ -25,3 +26,9 @@ export default ({ label, items, toggle }) => (
     </div>
   </>
 );
+
+const Plants = withPlants(chooser);
+
+const Machines = withMachines(chooser);
+
+export { Plants, Machines };

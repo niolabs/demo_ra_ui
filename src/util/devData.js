@@ -20,5 +20,5 @@ export default [
     reject_factor: 0.04,
     picks: { cumulative_count: 10 },
     placements: { cumulative_count: 10 },
-  }
+  },
 ];
