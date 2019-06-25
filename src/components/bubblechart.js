@@ -3,7 +3,7 @@ import { Chart } from '@nio/ui-kit';
 import { withGraphData } from '../providers/pubkeeper';
 import tooltip from '../util/tooltip';
 
-export default withGraphData(({ graphData, maxX, nozzles }) => graphData.length > 1 ? (
+export default withGraphData(({ items, maxX, nozzles, maxZ }) => items.length > 1 ? (
   <Chart
     type="bubble"
     height="100%"
@@ -14,9 +14,9 @@ export default withGraphData(({ graphData, maxX, nozzles }) => graphData.length 
       dataLabels: { enabled: false },
       xaxis: { min: 0, max: maxX * 1.2, tickAmount: 8, labels: { formatter: val => `${val.toFixed(2)}%`, align: 'center', offsetX: -5 }, title: { text: 'reject sum %' } },
       yaxis: { min: 0, max: max => max * 1.2, tickAmount: 8, labels: { formatter: val => val.toFixed(2) }, title: { text: 'reject sum' } },
-      tooltip: { custom: ({ seriesIndex, w }) => tooltip({ name: w.config.series[seriesIndex].name, data: w.config.series[seriesIndex].data, nozzles, maxX }) },
+      tooltip: { custom: ({ seriesIndex, w }) => tooltip({ name: w.config.series[seriesIndex].name, data: w.config.series[seriesIndex].data, nozzles, maxZ }) },
     }}
-    series={graphData}
+    series={items}
   />
 ) : (
   <div className="text-center pt-5">no data...</div>

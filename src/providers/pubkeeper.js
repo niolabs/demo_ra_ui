@@ -11,12 +11,12 @@ export class PubkeeperProvider extends React.Component {
     plants: {},
     machines: {},
     alerts: { a: { time: new Date().toUTCString(), plant: 'a', machine: 'b', nozzle_id: '1-E', description: 'This is an alert' }},
-    nozzles: [{ id: 'placeholder', x: 0, y: 0, z: 0 }],
+    nozzles: { placeholder: { nozzle_id: 'placeholder', reject_sum_percent: 0, reject_sum: 0, reject_factor: 0 }},
     chartLimits: { maxX: 0, maxZ: 0 },
     nozzleSort: { sortBy: 'id', asc: true },
   };
 
-  isDev = false;
+  isDev = true;
 
   componentDidMount = async () => {
     if (this.isDev) {
@@ -50,30 +50,9 @@ export class PubkeeperProvider extends React.Component {
     newData.map((m) => {
       plants[m.plant] = { id: m.plant, visible: plants[m.plant] ? plants[m.plant].visible : true };
       machines[m.machine] = { id: m.machine, plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
-
-      const nozzleIndex = nozzles.findIndex(n => n.id === m.nozzle_id);
-
-      const nozzleData = {
-        id: m.nozzle_id,
-        last: new Date(m.timestamp).toUTCString(),
-        plant: m.plant,
-        machine: m.machine,
-        visible: nozzleIndex !== -1 ? nozzles[nozzleIndex].visible : true,
-        x: m.reject_sum_percent * 100,
-        y: m.reject_sum,
-        z: m.reject_factor,
-        picks: m.picks.cumulative_count,
-        placements: m.placements.cumulative_count,
-      };
-
-      if (nozzleIndex !== -1) {
-        nozzles[nozzleIndex] = nozzleData;
-      } else {
-        nozzles.push(nozzleData);
-      }
-
-      if (nozzleData.x > chartLimits.maxX) chartLimits.maxX = nozzleData.x;
-      if (nozzleData.z > chartLimits.maxZ) chartLimits.maxZ = nozzleData.z;
+      nozzles[m.nozzle_id] = { ...m, visible: nozzles[m.nozzle_id] && nozzles[m.nozzle_id].visible || true};
+      if (m.reject_sum_percent > chartLimits.maxX) chartLimits.maxX = m.reject_sum_percent;
+      if (m.reject_factor > chartLimits.maxZ) chartLimits.maxZ = m.reject_factor;
     });
 
     this.setState({ plants, machines, nozzles, chartLimits });
@@ -105,8 +84,7 @@ export class PubkeeperProvider extends React.Component {
   toggleNozzle = (e) => {
     const k = e.currentTarget.getAttribute('data-id');
     const { nozzles } = this.state;
-    const nozzleIndex = nozzles.findIndex(n => n.id === k);
-    nozzles[nozzleIndex].visible = !nozzles[nozzleIndex].visible;
+    nozzles[k].visible = !nozzles[k].visible;
     this.setState({ nozzles });
   };
 
@@ -122,10 +100,6 @@ export class PubkeeperProvider extends React.Component {
     const { children } = this.props;
     const { plants, machines, nozzles, chartLimits: { maxX, maxZ }, alerts, nozzleSort } = this.state;
 
-    const graphData = nozzles
-      .filter(n => n.id === 'placeholder' || (n.visible && machines[n.machine].visible && plants[n.plant].visible))
-      .map(n => ({ name: n.id, data: [{ x: n.x, y: n.y, z: n.id === 'placeholder' ? 0 : n.z + (maxZ / 3) }] }));
-
     return (
       <PubkeeperContext.Provider value={{
         plants,
@@ -134,7 +108,6 @@ export class PubkeeperProvider extends React.Component {
         maxX,
         maxZ,
         alerts,
-        graphData,
         nozzleSort,
         togglePlant: this.togglePlant,
         toggleMachine: this.toggleMachine,
@@ -150,11 +123,14 @@ export class PubkeeperProvider extends React.Component {
 
 export const withGraphData = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ graphData, maxX, nozzles }) =>
+    {({ nozzles, machines, plants, maxX, maxZ }) =>
       <Component
         {...props}
-        graphData={graphData}
-        maxX={maxX}
+        items={Object.values(nozzles)
+        .filter(n => n.nozzle_id === 'placeholder' || (n.visible && machines[n.machine].visible && plants[n.plant].visible))
+        .map(n => ({ name: n.nozzle_id, data: [{ x: n.reject_sum_percent * 100, y: n.reject_sum, z: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor + (maxZ / 3) }] }))}
+        maxX={maxX * 100}
+        maxZ={maxZ}
         nozzles={nozzles}
       />
     }
@@ -166,7 +142,7 @@ export const withNozzles = Component => props => (
     {({ plants, machines, nozzles, nozzleSort: { asc, sortBy }, sortNozzles, toggleNozzle }) =>
       <Component
         {...props}
-        items={nozzles.filter(n => n.id !== 'placeholder' && plants[n.plant].visible && machines[n.machine].visible).sort((a, b) => ((asc) ? b[sortBy] > a[sortBy] ? -1 : 1 : b[sortBy] < a[sortBy] ? -1 : 1))}
+        items={Object.values(nozzles).filter(n => n.nozzle_id !== 'placeholder' && plants[n.plant].visible && machines[n.machine].visible).sort((a, b) => ((asc) ? b[sortBy] > a[sortBy] ? -1 : 1 : b[sortBy] < a[sortBy] ? -1 : 1))}
         asc={asc}
         sortBy={sortBy}
         sort={sortNozzles}

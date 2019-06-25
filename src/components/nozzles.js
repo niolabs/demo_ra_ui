@@ -35,24 +35,24 @@ export default withNozzles(({ items, asc, sortBy, sort, toggle }) => (
     </Row>
     <div className="data-holder">
       {items && items.map(n => (
-        <Row noGutters key={n.id} data-id={n.id} onClick={toggle} className="toggle-row">
+        <Row noGutters key={n.nozzle_id} data-id={n.nozzle_id} onClick={toggle} className="toggle-row">
           <Col xs="2" className="text-nowrap">
-            {n.id}
+            {n.nozzle_id}
           </Col>
           <Col xs="1" className="text-center text-nowrap">
-            {n.picks}
+            {n.picks.cumulative_count}
           </Col>
           <Col xs="2" className="text-center text-nowrap">
-            {n.placements}
+            {n.placements.cumulative_count}
           </Col>
           <Col xs="2" className="text-center text-nowrap">
-            {parseFloat(n.x).toFixed(6)}%
+            {parseFloat(n.reject_sum_percent).toFixed(6)}%
           </Col>
           <Col xs="2" className="text-center text-nowrap">
-            {n.y}
+            {n.reject_sum}
           </Col>
           <Col xs="2" className="text-center text-nowrap">
-            {parseFloat(n.z).toFixed(6)}
+            {parseFloat(n.reject_factor).toFixed(6)}
           </Col>
           <Col xs="1" className="text-right">
             <i className={`mr-1 fa ${n.visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />

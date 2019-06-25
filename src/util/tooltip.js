@@ -1,11 +1,10 @@
 export default ({ name, data, nozzles, maxZ }) => {
-  const nozzleIndex = nozzles.findIndex(n => n.id === name);
   let tooltip = '<div class="card"><div class="tooltip"><b>';
   tooltip += `nozzle ${name}`;
   tooltip += '</b><hr class="my-1" />';
-  tooltip += `plant: ${nozzles[nozzleIndex].plant}`;
+  tooltip += `plant: ${nozzles[name].plant}`;
   tooltip += '<br />';
-  tooltip += `machine: ${nozzles[nozzleIndex].machine}`;
+  tooltip += `machine: ${nozzles[name].machine}`;
   tooltip += '<hr class="my-1" />';
   tooltip += `reject sum %: ${parseFloat(data[0].x).toFixed(6)}`;
   tooltip += '<br />';
