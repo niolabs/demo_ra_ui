@@ -21,6 +21,7 @@ export default () => (
           <Nozzles />
         </Col>
       </Row>
+      <hr />
       <Row>
         <Col xs="12" id="chart-holder">
           <BubbleChart />

@@ -22,25 +22,27 @@ export default withAlerts(({ alerts }) => (
       </Col>
     </Row>
     <div className="data-holder">
-      {alerts.length && alerts.map(k => (
-        <Row key={k} className="alert-row">
+      {alerts.length ? alerts.map(a => (
+        <Row key={`${a.nozzle_id}-${a.time}`} className="alert-row">
           <Col xs="2" className="text-nowrap">
-            {k.time}
+            {a.time}
           </Col>
           <Col xs="2" className="text-center text-nowrap">
-            {k.plant}
+            {a.plant}
           </Col>
           <Col xs="2" className="text-center text-nowrap">
-            {k.machine}
+            {a.machine}
           </Col>
           <Col xs="2" className="text-center text-nowrap">
-            {k.nozzle_id}
+            {a.nozzle_id}
           </Col>
           <Col xs="4" className="text-nowrap">
-            {k.description}
+            {a.description}
           </Col>
         </Row>
-      ))}
+      )) : (
+        <div className="text-center pt-5">no alerts</div>
+      )}
     </div>
   </>
 ));

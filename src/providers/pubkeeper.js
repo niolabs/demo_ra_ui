@@ -3,6 +3,7 @@ import { PubkeeperClient, WebSocketBrew } from '@pubkeeper/browser-client';
 
 import config from '../../config';
 import devData from '../util/devData';
+import devAlerts from '../util/devAlerts';
 
 const PubkeeperContext = React.createContext();
 
@@ -10,17 +11,19 @@ export class PubkeeperProvider extends React.Component {
   state = {
     plants: {},
     machines: {},
-    alerts: { a: { time: new Date().toUTCString(), plant: 'a', machine: 'b', nozzle_id: '1-E', description: 'This is an alert' }},
+    alerts: [],
     nozzles: { placeholder: { nozzle_id: 'placeholder', reject_sum_percent: 0, reject_sum: 0, reject_factor: 0 }},
     chartLimits: { maxX: 0, maxZ: 0 },
     nozzleSort: { sortBy: 'id', asc: true },
+    thresholds: []
   };
 
-  isDev = false;
+  isDev = true;
 
   componentDidMount = async () => {
     if (this.isDev) {
       this.processNewData(devData);
+      this.setState({ alerts: devAlerts });
     } else {
       this.pkClient = await new PubkeeperClient({
         server: `${config.PK_SECURE ? 'wss' : 'ws'}://${config.PK_HOST}:${config.PK_PORT}/ws`,
@@ -181,10 +184,10 @@ export const withMachines = Component => props => (
 
 export const withAlerts = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ alerts }) =>
+    {({ alerts, plants, machines }) =>
       <Component
         {...props}
-        alerts={Object.values(alerts)}
+        alerts={alerts.filter(a => plants[a.plant].visible && machines[a.machine].visible)}
       />
     }
   </PubkeeperContext.Consumer>

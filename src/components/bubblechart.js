@@ -19,6 +19,6 @@ export default withGraphData(({ items, maxX, nozzles, maxZ }) => items.length > 
     series={items}
   />
 ) : (
-  <div className="text-center pt-5">no data...</div>
+  <div className="text-center pt-5">no data</div>
 ));
 

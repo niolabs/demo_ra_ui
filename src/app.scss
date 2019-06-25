@@ -8,18 +8,18 @@
 
 .data-holder {
   border-top: 1px solid $gray-lightest;
-  border-bottom: 1px solid $gray-lightest;
+  //border-bottom: 1px solid $gray-lightest;
   height: 120px;
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: 5px;
-  margin-bottom: 15px;
   white-space: nowrap;
 }
 
 .toggle-row,
 .alert-row {
   border-bottom: 1px solid $gray-lightest;
+  padding: 3px 0;
 }
 
 #chart-holder {
