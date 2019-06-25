@@ -50,7 +50,7 @@ export class PubkeeperProvider extends React.Component {
     newData.map((m) => {
       plants[m.plant] = { id: m.plant, visible: plants[m.plant] ? plants[m.plant].visible : true };
       machines[m.machine] = { id: m.machine, plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
-      nozzles[m.nozzle_id] = { ...m, visible: nozzles[m.nozzle_id] && nozzles[m.nozzle_id].visible || true};
+      nozzles[m.nozzle_id] = { ...m, placements: m.placements.cumulative_count, picks: m.picks.cumulative_count, visible: nozzles[m.nozzle_id] && nozzles[m.nozzle_id].visible || true};
       if (m.reject_sum_percent > chartLimits.maxX) chartLimits.maxX = m.reject_sum_percent;
       if (m.reject_factor > chartLimits.maxZ) chartLimits.maxZ = m.reject_factor;
     });
@@ -142,7 +142,9 @@ export const withNozzles = Component => props => (
     {({ plants, machines, nozzles, nozzleSort: { asc, sortBy }, sortNozzles, toggleNozzle }) =>
       <Component
         {...props}
-        items={Object.values(nozzles).filter(n => n.nozzle_id !== 'placeholder' && plants[n.plant].visible && machines[n.machine].visible).sort((a, b) => ((asc) ? b[sortBy] > a[sortBy] ? -1 : 1 : b[sortBy] < a[sortBy] ? -1 : 1))}
+        items={Object.values(nozzles)
+        .filter(n => n.nozzle_id !== 'placeholder' && plants[n.plant].visible && machines[n.machine].visible)
+        .sort((a, b) => ((asc) ? b[sortBy] > a[sortBy] ? -1 : 1 : b[sortBy] < a[sortBy] ? -1 : 1))}
         asc={asc}
         sortBy={sortBy}
         sort={sortNozzles}

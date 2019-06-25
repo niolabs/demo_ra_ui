@@ -7,8 +7,8 @@ export default [
     reject_sum_percent: 0.034,
     reject_sum: 4,
     reject_factor: 0.003,
-    picks: { cumulative_count: 10 },
-    placements: { cumulative_count: 10 },
+    picks: { cumulative_count: 5 },
+    placements: { cumulative_count: 8 },
   },
   {
     nozzle_id: '1-FF',
