@@ -1,8 +1,8 @@
 import React from 'react';
 import { Row, Col } from '@nio/ui-kit';
-import { withNozzles } from '../providers/pubkeeper';
+import { withSortedAndFilteredNozzles } from '../providers/pubkeeper';
 
-export default withNozzles(({ items, asc, sortBy, sort, toggle }) => (
+export default withSortedAndFilteredNozzles(({ items, asc, sortBy, sort, toggle }) => (
   <>
     <Row noGutters>
       <Col xs="2" className="text-nowrap nozzle-sort" data-sort="nozzle_id" onClick={sort}>

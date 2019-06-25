@@ -14,6 +14,10 @@
   overflow-x: hidden;
   margin-top: 5px;
   white-space: nowrap;
+
+  &.thresholds {
+    height: auto;
+  }
 }
 
 .toggle-row,
@@ -47,4 +51,8 @@
       color: $brand-success;
     }
   }
+}
+
+.form-control.is-invalid {
+  background-image: none !important;
 }

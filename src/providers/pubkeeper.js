@@ -4,6 +4,7 @@ import { PubkeeperClient, WebSocketBrew } from '@pubkeeper/browser-client';
 import config from '../../config';
 import devData from '../util/devData';
 import devAlerts from '../util/devAlerts';
+import devThresholds from '../util/devThresholds';
 
 const PubkeeperContext = React.createContext();
 
@@ -15,29 +16,38 @@ export class PubkeeperProvider extends React.Component {
     nozzles: { placeholder: { nozzle_id: 'placeholder', reject_sum_percent: 0, reject_sum: 0, reject_factor: 0 }},
     chartLimits: { maxX: 0, maxZ: 0 },
     nozzleSort: { sortBy: 'id', asc: true },
-    thresholds: []
+    thresholds: [],
   };
 
   isDev = true;
 
   componentDidMount = async () => {
+    this.pkClient = await new PubkeeperClient({
+      server: `${config.PK_SECURE ? 'wss' : 'ws'}://${config.PK_HOST}:${config.PK_PORT}/ws`,
+      jwt: config.PK_JWT,
+      brews: [new WebSocketBrew({ brewerConfig: { hostname: config.WS_HOST, port: config.WS_PORT, secure: config.WS_SECURE } })],
+    }).connect();
+
+    this.pkClient.addPatron('nozzle_plot', (patron) => {
+      patron.on('message', this.writeDataToState);
+      return () => patron.off('message', this.writeDataToState);
+    });
+
+    this.pkClient.addPatron('alerts', (patron) => {
+      patron.on('message', this.writeAlertsToState);
+      return () => patron.off('message', this.writeAlertToState);
+    });
+
+    this.pkClient.addPatron('thresholds', (patron) => {
+      patron.on('message', this.writeThresholdsToState);
+      return () => patron.off('message', this.writeThresholdsToState);
+    });
+
+    this.pkClient.addBrewer('thresholds', brewer => this.thresholdBrewer = brewer);
+
     if (this.isDev) {
       this.processNewData(devData);
-      this.setState({ alerts: devAlerts });
-    } else {
-      this.pkClient = await new PubkeeperClient({
-        server: `${config.PK_SECURE ? 'wss' : 'ws'}://${config.PK_HOST}:${config.PK_PORT}/ws`,
-        jwt: config.PK_JWT,
-        brews: [new WebSocketBrew({ brewerConfig: { hostname: config.WS_HOST, port: config.WS_PORT, secure: config.WS_SECURE } })],
-      }).connect();
-      this.pkClient.addPatron('nozzle_plot', (patron) => {
-        patron.on('message', this.writeDataToState);
-        return () => patron.off('message', this.writeDataToState);
-      });
-      this.pkClient.addPatron('alerts', (patron) => {
-        patron.on('message', this.writeAlertsToState);
-        return () => patron.off('message', this.writeAlertToState);
-      });
+      this.setState({ alerts: devAlerts, thresholds: devThresholds });
     }
   };
 
@@ -70,6 +80,12 @@ export class PubkeeperProvider extends React.Component {
     this.setState({ alerts });
   };
 
+  writeThresholdsToState = (data) => {
+    const json = new TextDecoder().decode(data);
+    const thresholds = JSON.parse(json);
+    this.setState({ thresholds });
+  };
+
   togglePlant = (e) => {
     const k = e.currentTarget.getAttribute('data-id');
     const { plants } = this.state;
@@ -99,15 +115,40 @@ export class PubkeeperProvider extends React.Component {
     this.setState({ nozzleSort });
   };
 
+  updateThresholds = (newValues) => {
+    const { thresholds } = this.state;
+
+    thresholds.map(t => {
+      newValues.nozzle_ids.forEach(n => {
+        const existingNozzleIdIndex = t.nozzle_ids.findIndex(tn => tn === n);
+        if (existingNozzleIdIndex !== -1) t.nozzle_ids.splice(existingNozzleIdIndex, 1);
+      });
+      if (!t.nozzle_ids.length) delete t.nozzle_ids;
+    });
+
+    const newThresholds = thresholds.filter(t => !!t.nozzle_ids);
+    newThresholds.push(newValues);
+    this.thresholdBrewer.brewJSON(newThresholds);
+  };
+
+  resetSortAndFilter = () => {
+    const { nozzles, machines, plants, nozzleSort } = this.state;
+    Object.values(nozzles).map(i => i.visible = true);
+    Object.values(machines).map(i => i.visible = true);
+    Object.values(plants).map(i => i.visible = true);
+    this.setState({ nozzles, machines, plants, nozzleSort: { sortBy: 'id', asc: true }})
+  };
+
   render = () => {
     const { children } = this.props;
-    const { plants, machines, nozzles, chartLimits: { maxX, maxZ }, alerts, nozzleSort } = this.state;
+    const { plants, machines, nozzles, chartLimits: { maxX, maxZ }, alerts, thresholds, nozzleSort } = this.state;
 
     return (
       <PubkeeperContext.Provider value={{
         plants,
         machines,
         nozzles,
+        thresholds,
         maxX,
         maxZ,
         alerts,
@@ -116,6 +157,8 @@ export class PubkeeperProvider extends React.Component {
         toggleMachine: this.toggleMachine,
         toggleNozzle: this.toggleNozzle,
         sortNozzles: this.sortNozzles,
+        updateThresholds: this.updateThresholds,
+        resetSortAndFilter: this.resetSortAndFilter,
       }}
       >
         {children}
@@ -140,7 +183,19 @@ export const withGraphData = Component => props => (
   </PubkeeperContext.Consumer>
 );
 
-export const withNozzles = Component => props => (
+export const withThresholds = Component => props => (
+  <PubkeeperContext.Consumer>
+    {({ thresholds, updateThresholds }) =>
+      <Component
+        {...props}
+        thresholds={thresholds}
+        updateThresholds={updateThresholds}
+      />
+    }
+  </PubkeeperContext.Consumer>
+);
+
+export const withSortedAndFilteredNozzles = Component => props => (
   <PubkeeperContext.Consumer>
     {({ plants, machines, nozzles, nozzleSort: { asc, sortBy }, sortNozzles, toggleNozzle }) =>
       <Component
@@ -184,10 +239,21 @@ export const withMachines = Component => props => (
 
 export const withAlerts = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ alerts, plants, machines }) =>
+    {({ alerts, plants, machines, nozzles }) =>
       <Component
         {...props}
-        alerts={alerts.filter(a => plants[a.plant].visible && machines[a.machine].visible)}
+        alerts={alerts.filter(a => plants[a.plant].visible && machines[a.machine].visible && nozzles[a.nozzle_id].visible)}
+      />
+    }
+  </PubkeeperContext.Consumer>
+);
+
+export const withSortAndFilterReset = Component => props => (
+  <PubkeeperContext.Consumer>
+    {({ resetSortAndFilter }) =>
+      <Component
+        {...props}
+        resetSortAndFilter={resetSortAndFilter}
       />
     }
   </PubkeeperContext.Consumer>
