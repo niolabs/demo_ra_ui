@@ -1,7 +1,6 @@
 import React from 'react';
 import { PubkeeperClient, WebSocketBrew } from '@pubkeeper/browser-client';
 
-import config from '../../config';
 import devData from '../util/devData';
 import devAlerts from '../util/devAlerts';
 import devThresholds from '../util/devThresholds';
@@ -19,13 +18,13 @@ export class PubkeeperProvider extends React.Component {
     thresholds: [],
   };
 
-  isDev = true;
+  isDev = window.ISDEV;
 
   componentDidMount = async () => {
     this.pkClient = await new PubkeeperClient({
-      server: `${config.PK_SECURE ? 'wss' : 'ws'}://${config.PK_HOST}:${config.PK_PORT}/ws`,
-      jwt: config.PK_JWT,
-      brews: [new WebSocketBrew({ brewerConfig: { hostname: config.WS_HOST, port: config.WS_PORT, secure: config.WS_SECURE } })],
+      server: `${window.PK_SECURE ? 'wss' : 'ws'}://${window.PK_HOST}:${window.PK_PORT}/ws`,
+      jwt: window.PK_JWT,
+      brews: [new WebSocketBrew({ brewerConfig: { hostname: window.WS_HOST, port: window.WS_PORT, secure: window.WS_SECURE } })],
     }).connect();
 
     this.pkClient.addPatron('nozzle_plot', (patron) => {
@@ -35,7 +34,7 @@ export class PubkeeperProvider extends React.Component {
 
     this.pkClient.addPatron('alerts', (patron) => {
       patron.on('message', this.writeAlertsToState);
-      return () => patron.off('message', this.writeAlertToState);
+      return () => patron.off('message', this.writeAlertsToState);
     });
 
     this.pkClient.addPatron('thresholds', (patron) => {
@@ -61,7 +60,7 @@ export class PubkeeperProvider extends React.Component {
     const { plants, machines, nozzles, chartLimits } = this.state;
 
     newData.map((m) => {
-      plants[m.plant] = { id: m.plant, visible: plants[m.plant] ? plants[m.plant].visible : true };
+      plants[m.plant] = { id: m.plant, visible: plants[m.plant] ? plants[m.plant].visible : false };
       machines[m.machine] = { id: m.machine, plant: m.plant, visible: machines[m.machine] ? machines[m.machine].visible : true };
       nozzles[m.nozzle_id] = { ...m, placements: m.placements.cumulative_count, picks: m.picks.cumulative_count, visible: nozzles[m.nozzle_id] && nozzles[m.nozzle_id].visible || true};
       if (m.reject_sum_percent > chartLimits.maxX) chartLimits.maxX = m.reject_sum_percent;
@@ -71,7 +70,7 @@ export class PubkeeperProvider extends React.Component {
     this.setState({ plants, machines, nozzles, chartLimits });
   };
 
-  writeAlertToState = (data) => {
+  writeAlertsToState = (data) => {
     const { alerts } = this.state;
     const json = new TextDecoder().decode(data);
     const newData = JSON.parse(json);

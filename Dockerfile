@@ -1,16 +1,16 @@
 # base image
-FROM node:12.2.0-alpine
-
-# set working directory
+FROM node:slim as react-build
 WORKDIR /app
+COPY . ./
+RUN npm i -s
+RUN npm run build
 
-# add `/app/node_modules/.bin` to $PATH
-ENV PATH /app/node_modules/.bin:$PATH
+# Stage 2 - the production environment
+FROM nginx:alpine
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=react-build /app/build /usr/share/nginx/html
+EXPOSE 80
+COPY docker/docker-entrypoint.sh docker/generate_config_js.sh /
+RUN chmod +x docker-entrypoint.sh generate_config_js.sh
 
-# install and cache app dependencies
-COPY package.json /app/package.json
-RUN npm install --silent
-RUN npm install react-scripts@3.0.1 -g --silent
-
-# start app
-CMD ["npm", "start"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
