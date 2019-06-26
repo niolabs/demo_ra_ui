@@ -8,7 +8,7 @@ RUN npm run build
 # Stage 2 - the production environment
 FROM nginx:alpine
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=react-build /app/build /usr/share/nginx/html
+COPY --from=react-build /app/public /usr/share/nginx/html
 EXPOSE 80
 COPY docker/docker-entrypoint.sh docker/generate_config_js.sh /
 RUN chmod +x docker-entrypoint.sh generate_config_js.sh

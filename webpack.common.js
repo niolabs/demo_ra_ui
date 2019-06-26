@@ -14,7 +14,7 @@ module.exports = {
   entry: ['@babel/polyfill', path.join(__dirname, 'src/index.js')],
 
   output: {
-    path: path.join(__dirname, 'build'),
+    path: path.join(__dirname, 'public'),
     filename: '[chunkhash].min.js',
     publicPath: '/',
   },
