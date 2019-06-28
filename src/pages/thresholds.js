@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardBody, Col, Row, Form, Input, Button } from '@nio/ui-kit';
 import { withThresholds, withSortedAndFilteredNozzles } from '../providers/pubkeeper';
 import { Machines, Plants } from '../components/chooser';
+import ToggleDev from '../components/toggleDev';
 
 class Thresholds extends React.Component {
   state = { submitted: false, errors: {} };
@@ -45,7 +46,14 @@ class Thresholds extends React.Component {
     return (
       <Card>
         <CardBody className="p-3">
-          <h2 className="m-0">Thresholds</h2>
+          <Row>
+            <Col xs="9">
+              <h2 className="m-0">Thresholds</h2>
+            </Col>
+            <Col xs="3">
+              <ToggleDev />
+            </Col>
+          </Row>
           <hr />
           <Row>
             <Col lg="4" xs="12">
@@ -68,9 +76,9 @@ class Thresholds extends React.Component {
                 <Row>
                   <Input id="nozzle_ids" type="hidden" value={visibleItems} />
                   {this.formFields.map(f => (
-                    <Col md="6" key={f.name} className="text-center text-nowrap mb-1">
+                    <Col xs="12" md="4" key={f.name} className="text-center text-nowrap mb-1">
                       <Input invalid={!!errors[f.name]} id={f.name} disabled={!visibleItems.length} type="number" placeholder={f.label} />
-                      <div className="text-danger small my-1">{errors[f.name] ? `${f.label} ${errors[f.name]}` : ''}&nbsp;</div>
+                      <div className="text-danger small mt-1 mb-0">{errors[f.name] ? `${f.label} ${errors[f.name]}` : ''}&nbsp;</div>
                     </Col>
                   ))}
                 </Row>
@@ -81,6 +89,7 @@ class Thresholds extends React.Component {
                   </Col>
                 </Row>
               </Form>
+              <hr />
             </Col>
             <Col lg="8" xs="12">
               <Row noGutters>

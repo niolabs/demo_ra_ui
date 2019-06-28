@@ -1,5 +1,5 @@
 {
-  "name": "ui-scaffold-pkchooser",
+  "name": "demo-ra-ui",
   "description": "A UI for the PG Connected Laundry Demo",
   "private": true,
   "scripts": {
@@ -14,7 +14,7 @@
   "dependencies": {
     "@nio/ui-kit": "^2.0.1",
     "@pubkeeper/browser-client": "^4.0.4",
-    "auth0-js": "^9.10.4",
+    "auth0-js": "^9.11.1",
     "font-awesome": "^4.7.0",
     "history": "^4.9.0",
     "json-stringify-pretty-compact": "^2.0.0",

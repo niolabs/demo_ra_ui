@@ -16,11 +16,12 @@ export class PubkeeperProvider extends React.Component {
     chartLimits: { maxX: 0, maxZ: 0 },
     nozzleSort: { sortBy: 'id', asc: true },
     thresholds: [],
+    isDev: false,
   };
 
-  isDev = window.ISDEV;
-
   componentDidMount = async () => {
+    const { isDev } = this.state;
+
     this.pkClient = await new PubkeeperClient({
       server: `${window.PK_SECURE ? 'wss' : 'ws'}://${window.PK_HOST}:${window.PK_PORT}/ws`,
       jwt: window.PK_JWT,
@@ -44,9 +45,29 @@ export class PubkeeperProvider extends React.Component {
 
     this.pkClient.addBrewer('thresholds', brewer => this.thresholdBrewer = brewer);
 
-    if (this.isDev) {
+    if (isDev) {
       this.processNewData(devData);
       this.setState({ alerts: devAlerts, thresholds: devThresholds });
+    }
+  };
+
+  toggleDev = () => {
+    const { isDev } = this.state;
+    const newDevState = !isDev;
+    this.setState({ isDev: newDevState });
+    if (newDevState) {
+      this.processNewData(devData);
+      this.setState({ alerts: devAlerts, thresholds: devThresholds });
+    } else {
+      this.setState({
+        plants: {},
+        machines: {},
+        alerts: [],
+        nozzles: { placeholder: { nozzle_id: 'placeholder', reject_sum_percent: 0, reject_sum: 0, reject_factor: 0 }},
+        chartLimits: { maxX: 0, maxZ: 0 },
+        nozzleSort: { sortBy: 'id', asc: true },
+        thresholds: [],
+      })
     }
   };
 
@@ -131,7 +152,7 @@ export class PubkeeperProvider extends React.Component {
   };
 
   resetSortAndFilter = () => {
-    const { nozzles, machines, plants, nozzleSort } = this.state;
+    const { nozzles, machines, plants } = this.state;
     Object.values(nozzles).map(i => i.visible = true);
     Object.values(machines).map(i => i.visible = true);
     Object.values(plants).map(i => i.visible = true);
@@ -140,7 +161,7 @@ export class PubkeeperProvider extends React.Component {
 
   render = () => {
     const { children } = this.props;
-    const { plants, machines, nozzles, chartLimits: { maxX, maxZ }, alerts, thresholds, nozzleSort } = this.state;
+    const { plants, machines, nozzles, chartLimits: { maxX, maxZ }, alerts, thresholds, nozzleSort, isDev } = this.state;
 
     return (
       <PubkeeperContext.Provider value={{
@@ -152,12 +173,14 @@ export class PubkeeperProvider extends React.Component {
         maxZ,
         alerts,
         nozzleSort,
+        isDev,
         togglePlant: this.togglePlant,
         toggleMachine: this.toggleMachine,
         toggleNozzle: this.toggleNozzle,
         sortNozzles: this.sortNozzles,
         updateThresholds: this.updateThresholds,
         resetSortAndFilter: this.resetSortAndFilter,
+        toggleDev: this.toggleDev,
       }}
       >
         {children}
@@ -253,6 +276,18 @@ export const withSortAndFilterReset = Component => props => (
       <Component
         {...props}
         resetSortAndFilter={resetSortAndFilter}
+      />
+    }
+  </PubkeeperContext.Consumer>
+);
+
+export const withToggleDev = Component => props => (
+  <PubkeeperContext.Consumer>
+    {({ toggleDev, isDev }) =>
+      <Component
+        {...props}
+        toggleDev={toggleDev}
+        isDev={isDev}
       />
     }
   </PubkeeperContext.Consumer>

@@ -11,6 +11,5 @@ services:
     - WS_HOST=7e36a7e0-a3f4-46f0-8f8a-4213762cb593.websocket.nio.works
     - WS_PORT=443
     - WS_SECURE=true
-    - ISDEV=true
     ports:
     - 3000:80
