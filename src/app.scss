@@ -23,7 +23,12 @@
 .toggle-row,
 .alert-row {
   border-bottom: 1px solid $gray-lightest;
-  padding: 3px 0;
+  padding: 5px 0;
+}
+
+.input-row {
+  padding-top:4px;
+  padding-bottom: 3px;
 }
 
 #chart-holder {
@@ -33,6 +38,17 @@
 .tooltip {
   padding: 5px;
   font-size: 12px;
+}
+
+.pageheader {
+  height: 48px;
+  @media screen and (max-width: 576px) {
+    height: auto;
+  }
+}
+.text-xs {
+  line-height: 1;
+  font-size: 10px;
 }
 
 .eyecon {

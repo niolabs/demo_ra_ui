@@ -2,17 +2,15 @@ import React, { Component } from 'react';
 import { Navbar, NavbarToggler, Nav, NavItem, Collapse } from '@nio/ui-kit';
 import { NavLink } from 'react-router-dom';
 
-import { withSortAndFilterReset } from '../providers/pubkeeper';
 import '../app.scss';
 import Routes from './routes';
+import ToggleDev from './toggleDev';
 
 class App extends Component {
   state = { navOpen: false };
 
   handleNavigation = () => {
-    const { resetSortAndFilter } = this.props;
     this.setState({ navOpen: false });
-    resetSortAndFilter();
   };
 
   render = () => {
@@ -28,10 +26,16 @@ class App extends Component {
           <Collapse isOpen={navOpen} navbar>
             <Nav className="ml-auto" navbar>
               <NavItem>
-                <NavLink onClick={this.handleNavigation} exact to="/">Dashboard</NavLink>
+                <NavLink onClick={this.handleNavigation} exact to="/">Analytics</NavLink>
               </NavItem>
               <NavItem>
-                <NavLink onClick={this.handleNavigation} exact to="/thresholds">Thresholds</NavLink>
+                <NavLink onClick={this.handleNavigation} exact to="/thresholds">Adjust Thresholds</NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink onClick={this.handleNavigation} exact to="/notifications">Manage Notifications</NavLink>
+              </NavItem>
+              <NavItem>
+                <ToggleDev />
               </NavItem>
             </Nav>
           </Collapse>
@@ -44,4 +48,4 @@ class App extends Component {
   }
 }
 
-export default withSortAndFilterReset(App);
+export default App;

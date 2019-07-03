@@ -4,9 +4,11 @@ import { withPlants, withMachines } from '../providers/pubkeeper';
 
 const chooser = ({ label, items, toggle }) => (
   <>
+    <b>{label}</b>
+    <hr className="my-1" />
     <Row noGutters>
       <Col xs="10">
-        <b>{label}</b>
+        <b>ID</b>
       </Col>
       <Col xs="2" className="text-right">
         <i className="fa fa-eye eyecon" />
