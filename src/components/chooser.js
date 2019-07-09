@@ -7,21 +7,18 @@ const chooser = ({ label, items, toggle }) => (
     <b>{label}</b>
     <hr className="my-1" />
     <Row noGutters>
-      <Col xs="10">
+      <Col xs="12" className="text-xs">
         <b>ID</b>
-      </Col>
-      <Col xs="2" className="text-right">
-        <i className="fa fa-eye eyecon" />
       </Col>
     </Row>
     <div className="data-holder">
       {items.map(i => (
-        <Row noGutters key={i.id} data-id={i.id} onClick={toggle} className="toggle-row">
+        <Row noGutters key={i.key} data-id={i.key} onClick={toggle} className="toggle-row">
           <Col xs="10">
             {i.id}
           </Col>
           <Col xs="2" className="text-right">
-            <i className={`mr-1 fa ${i.visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
+            {i.visible && (<i className="mr-1 fa fa-check text-success" />)}
           </Col>
         </Row>
       ))}

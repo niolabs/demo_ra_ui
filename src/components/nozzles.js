@@ -7,78 +7,56 @@ export default withNozzles(({ items, asc, sortBy, sort, toggle }) => (
     <b>Nozzles</b>
     <hr className="my-1" />
     <Row noGutters>
-      <Col xs="1" className="text-nowrap nozzle-sort" data-sort="nozzle_id" onClick={sort}>
-        <b>Ch-Hole</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'nozzle_id' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'nozzle_id' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="1" className="text-center text-nowrap nozzle-sort" data-sort="picks" onClick={sort}>
-        <b>Type</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'type' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'type' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="1" className="text-center text-nowrap nozzle-sort" data-sort="picks" onClick={sort}>
-        <b>Picks</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'picks' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'picks' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="1" className="text-center text-nowrap nozzle-sort" data-sort="placements" onClick={sort}>
-        <b>Placements</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'placements' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'placements' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="2" className="text-center text-nowrap nozzle-sort" data-sort="placements" onClick={sort}>
-        <b>Poss Missing</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'possible-missing' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'possible-missing' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="2" className="text-center text-nowrap nozzle-sort" data-sort="placements" onClick={sort}>
-        <b>Comp Missing</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'comp-missing' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'comp-missing' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="1" className="text-center text-nowrap nozzle-sort" data-sort="reject_sum" onClick={sort}>
-        <b>Rej Sum</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'reject_sum' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'reject_sum' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="1" className="text-center text-nowrap nozzle-sort" data-sort="reject_sum_percent" onClick={sort}>
-        <b>Rej Sum %</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'reject_sum_percent' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'reject_sum_percent' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="1" className="text-center text-nowrap nozzle-sort" data-sort="reject_factor" onClick={sort}>
-        <b>Rej Factor</b>
-        <i className={`fa fa-chevron-${asc && sortBy === 'reject_factor' ? 'up' : 'down'} pull-right sortcon ${sortBy === 'reject_factor' ? 'active' : ''}`} />
-      </Col>
-      <Col xs="1" className="text-nowrap text-right">
-        <i className="fa fa-eye eyecon mr-1 " />
-      </Col>
+      {[
+        { col: 'nozzle_id', label: 'Ch-Hole'},
+        { col: 'tooltype', label: 'Tooltype'},
+        { col: 'picks', label: 'Picks'},
+        { col: 'placements', label: 'Placements'},
+        { col: 'poss_missing', label: 'Poss Missing'},
+        { col: 'comp_missing', label: 'Comp Missing'},
+        { col: 'reject_sum', label: 'Rejects'},
+        { col: 'reject_sum_percent', label: 'Nozz Rej %'},
+        { col: 'reject_factor', label: 'Nozz Rej Factor'},
+
+      ].map(c => (
+        <Col key={c.col} className="nozzle-cell nozzle-sort text-xs" data-sort={c.col} onClick={sort}>
+          <b>{c.label}</b>&nbsp;&nbsp;<i className={`fa fa-chevron-${asc && sortBy === c.col ? 'up' : 'down'} sortcon ${sortBy === c.col ? 'active' : ''}`} />
+        </Col>
+      ))}
+      <Col />
     </Row>
     <div className="data-holder">
       {items && items.map(n => (
-        <Row noGutters key={n.nozzle_id} data-id={n.nozzle_id} onClick={toggle} className="toggle-row">
-          <Col xs="1" className="text-nowrap">
+        <Row noGutters key={n.key} data-id={n.key} onClick={toggle} className="toggle-row">
+          <Col className="nozzle-cell">
             {n.nozzle_id}
           </Col>
-          <Col xs="1" className="text-center text-nowrap">
+          <Col className="nozzle-cell text-center">
             {n.type}
           </Col>
-          <Col xs="1" className="text-center text-nowrap">
+          <Col className="nozzle-cell text-center">
             {n.picks}
           </Col>
-          <Col xs="1" className="text-center text-nowrap">
+          <Col className="nozzle-cell text-center">
             {n.placements}
           </Col>
-          <Col xs="2" className="text-center text-nowrap">
-            {n.possibleMissing}
+          <Col className="nozzle-cell text-center">
+            {n.poss_missing}
           </Col>
-          <Col xs="2" className="text-center text-nowrap">
-            {n.compMissing}
+          <Col className="nozzle-cell text-center">
+            {n.comp_missing}
           </Col>
-          <Col xs="1" className="text-center text-nowrap">
+          <Col className="nozzle-cell text-center">
             {n.reject_sum}
           </Col>
-          <Col xs="1" className="text-center text-nowrap">
-            {parseFloat(n.reject_sum_percent * 100).toFixed(6)}%
+          <Col className="nozzle-cell text-center">
+            {parseFloat(n.reject_sum_percent * 100).toFixed(2)}%
           </Col>
-          <Col xs="1" className="text-center text-nowrap">
-            {parseFloat(n.reject_factor).toFixed(6)}
+          <Col className="nozzle-cell text-center">
+            {parseFloat(n.reject_factor).toFixed(2)}
           </Col>
-          <Col xs="1" className="text-right">
-            <i className={`mr-1 fa ${n.visible ? 'fa-check text-success' : 'fa-times text-danger'}`} />
+          <Col className="nozzle-cell text-right">
+            {n.visible && (<i className="mr-1 fa fa-check text-success" />)}
           </Col>
         </Row>
       ))}

@@ -6,7 +6,10 @@ export default [
     left_factor: -1,
     right_factor: 1,
     left_up_factor: 0.33,
-    nozzle_ids: ['1-EE', '1-DD'],
+    machines: [
+      {plant: '1', id: 'PM1'},
+      {plant: '1', id: 'PM2'},
+    ],
   },
   {
     reject_quantity: 90,
@@ -15,6 +18,9 @@ export default [
     left_factor: -2,
     right_factor: 2,
     left_up_factor: 0.45,
-    nozzle_ids: ['1-FF'],
+    machines: [
+      {plant: '2', id: 'PM3'},
+      {plant: '10', id: 'PM1'},
+    ],
   },
 ];

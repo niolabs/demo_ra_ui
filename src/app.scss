@@ -15,7 +15,7 @@
   margin-top: 5px;
   white-space: nowrap;
 
-  &.thresholds {
+  &.no-height {
     height: auto;
   }
 }
@@ -55,13 +55,16 @@
   color: $gray-lighter;
 }
 
-
+.nozzle-cell {
+  width: 10%;
+  white-space: nowrap;
+}
 .nozzle-sort {
   cursor: pointer;
   .sortcon {
     color: $gray-lighter;
-    font-size: 11px;
-    margin-top: 5px;
+    font-size: 10px;
+    margin-top: 0;
 
     &.active {
       color: $brand-success;

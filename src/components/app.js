@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Navbar, NavbarToggler, Nav, NavItem, Collapse } from '@nio/ui-kit';
 import { NavLink } from 'react-router-dom';
 
+import { withSortAndFilterReset } from '../providers/pubkeeper';
 import '../app.scss';
 import Routes from './routes';
 import ToggleDev from './toggleDev';
@@ -10,7 +11,9 @@ class App extends Component {
   state = { navOpen: false };
 
   handleNavigation = () => {
+    const { resetSortAndFilter } = this.props;
     this.setState({ navOpen: false });
+    resetSortAndFilter();
   };
 
   render = () => {
@@ -48,4 +51,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withSortAndFilterReset(App);

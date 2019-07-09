@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardBody, Col, Row, Form, Input, Button } from '@nio/ui-kit';
-import { withThresholds, withNozzles } from '../providers/pubkeeper';
+import { withThresholds, withVisibleMachines } from '../providers/pubkeeper';
 import { Machines, Plants } from '../components/chooser';
 import Alerts from '../components/alerts';
 
@@ -17,12 +17,12 @@ class Thresholds extends React.Component {
   ];
 
   handleSubmit = () => {
-    const { updateThresholds } = this.props;
+    const { updateThresholds, items } = this.props;
     const errors = {};
-    const newThresholdObject = { nozzle_ids: document.getElementById('nozzle_ids').value.split(',') };
+    const newThresholdObject = { machines: items };
 
     this.formFields.map(f => {
-      const fieldValue = parseInt(document.getElementById(f.name).value, 10);
+      const fieldValue = parseFloat(document.getElementById(f.name).value);
       if (!fieldValue) errors[f.name] = 'is required';
       if (f.name === 'left_factor' && fieldValue > -1) errors[f.name] = 'must be negative';
       if (!errors[f.name]) newThresholdObject[f.name] = fieldValue;
@@ -41,8 +41,6 @@ class Thresholds extends React.Component {
     const { items } = this.props;
     const { errors } = this.state;
 
-    const visibleItems = items.map(i => i.nozzle_id);
-
     return (
       <Card>
         <CardBody className="p-3">
@@ -59,21 +57,20 @@ class Thresholds extends React.Component {
             </Col>
             <Col sm="12" lg="8">
               <Form>
-                <Input id="nozzle_ids" type="hidden" value={visibleItems} />
-                <b>{visibleItems.length ? `Update Threshold for ${visibleItems.length} Nozzle${visibleItems.length !== 1 ? 's' : ''}` : 'Choose At Least 1 Plant/Machine'}</b>
+                <b>{items.length ? `Update Threshold for ${items.length} Machine${items.length !== 1 ? 's' : ''}` : 'Choose At Least 1 Plant/Machine'}</b>
                 <hr className="my-1" />
                 <Row>
                   {this.formFields.map(f => (
-                    <Col xs="12" lg="2" key={f.name} className="text-nowrap">
-                      <div className={`${errors[f.name] ? 'text-danger' : ''}`}>{errors[f.name] ? `${f.label} ${errors[f.name]}` : f.label}&nbsp;</div>
+                    <Col xs="12" lg="2" key={f.name} className="text-nowrap text-xs">
+                      <div className={`${errors[f.name] ? 'text-danger' : ''}`}><b>{errors[f.name] ? `${f.label} ${errors[f.name]}` : f.label}&nbsp;</b></div>
                     </Col>
                   ))}
                 </Row>
-                <div className="data-holder thresholds">
+                <div className="data-holder no-height">
                   <Row>
                     {this.formFields.map(f => (
                       <Col xs="12" lg="2" key={f.name} className="text-nowrap input-row">
-                        <Input size="sm" invalid={!!errors[f.name]} id={f.name} disabled={!visibleItems.length} type="number" />
+                        <Input step="0.1" invalid={!!errors[f.name]} id={f.name} disabled={!items.length} type="number" />
                       </Col>
                     ))}
                   </Row>
@@ -81,7 +78,7 @@ class Thresholds extends React.Component {
                 <hr className="mt-0 mb-2" />
                 <Row>
                   <Col xs="12" className="text-center text-nowrap">
-                    <Button onClick={this.handleSubmit} disabled={!visibleItems.length} block color="success">Save</Button>
+                    <Button onClick={this.handleSubmit} disabled={!items.length} block color="success">Save</Button>
                   </Col>
                 </Row>
               </Form>
@@ -95,4 +92,4 @@ class Thresholds extends React.Component {
   }
 }
 
-export default withNozzles(withThresholds(Thresholds));
+export default withVisibleMachines(withThresholds(Thresholds));
