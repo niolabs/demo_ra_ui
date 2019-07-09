@@ -44,7 +44,7 @@ class Thresholds extends React.Component {
     return (
       <Card>
         <CardBody className="p-3">
-          <div className="pageheader">
+          <div>
             <h2 className="m-0">Adjust Thresholds</h2>
           </div>
           <hr />

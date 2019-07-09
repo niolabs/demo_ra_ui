@@ -9,15 +9,10 @@ import { Plants, Machines } from '../components/chooser';
 export default () => (
   <Card>
     <CardBody className="p-3">
-      <Row className="pageheader">
-        <Col lg="3" className="mb-1">
-          <h2 className="m-0 text-nowrap">Current Program</h2>
-        </Col>
-        <Col lg="9" className="mb-1">
-          <CurrentProgram />
-        </Col>
-      </Row>
-      <hr />
+      <div>
+        <h2 className="m-0">Analytics</h2>
+      </div>
+      <CurrentProgram />
       <Row>
         <Col lg="2" xs="6" className="mb-1">
           <Plants />

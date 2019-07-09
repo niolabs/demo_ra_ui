@@ -45,16 +45,16 @@ class Thresholds extends React.Component {
     return (
       <Card>
         <CardBody className="p-3">
-          <div className="pageheader">
+          <div>
             <h2 className="m-0">Manage Notifications</h2>
           </div>
-          <hr className="my-1" />
+          <hr />
           <Row noGutters>
-            <Col xs="4" className="text-xs">
-              <b>name</b>
+            <Col xs="4">
+              <b>Name</b>
             </Col>
-            <Col xs="4" className="text-xs">
-              <b>number</b>
+            <Col xs="4">
+              <b>Number</b>
             </Col>
           </Row>
           <div className="data-holder no-height">
