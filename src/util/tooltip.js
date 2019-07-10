@@ -10,7 +10,7 @@ export default ({ name, data, maxZ }) => {
   tooltip += '<br />';
   tooltip += `reject sum: ${data[0].y}`;
   tooltip += '<br />';
-  tooltip += `reject factor: ${parseFloat(data[0].z - maxZ).toFixed(6)}`;
+  tooltip += `reject factor: ${parseFloat(data[0].z - (maxZ / 3)).toFixed(6)}`;
   tooltip += '</div></div>';
   return tooltip;
 };
