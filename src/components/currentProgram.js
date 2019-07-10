@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardBody, Row, Col } from '@nio/ui-kit';
+import { Row, Col } from '@nio/ui-kit';
 import { withCurrentProgram } from '../providers/pubkeeper';
 
 export default withCurrentProgram(({ machine, optel_schedule_wo, side, latest }) => (
@@ -10,22 +10,22 @@ export default withCurrentProgram(({ machine, optel_schedule_wo, side, latest })
         <hr className="my-2 d-block d-lg-none" />
       </Col>
       <Col lg="2" className="text-nowrap text-center">
-        <b>{machine || 'tmp-01'}</b><br />
+        <b>{machine || '-'}</b><br />
         <span className="text-xs">machine</span>
         <hr className="my-2 d-block d-lg-none" />
       </Col>
       <Col lg="2" className="text-nowrap text-center">
-        <b>{optel_schedule_wo || '4010405712T'}</b><br />
+        <b>{optel_schedule_wo || '-'}</b><br />
         <span className="text-xs">optel schedule wo</span>
         <hr className="my-2 d-block d-lg-none" />
       </Col>
       <Col lg="2" className="text-nowrap text-center">
-        <b>{side || 'Top'}</b><br />
+        <b>{side || '-'}</b><br />
         <span className="text-xs">side</span>
         <hr className="my-2 d-block d-lg-none" />
       </Col>
       <Col lg="3" className="text-nowrap text-center">
-        <b>{latest || new Date().toLocaleString()}</b><br />
+        <b>{latest || '-'}</b><br />
         <span className="text-xs">latest date/time</span>
       </Col>
     </Row>

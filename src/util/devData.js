@@ -12,6 +12,8 @@ export default [
     type: '1240',
     picks: { cumulative_count: 133 },
     placements: { cumulative_count: 833 },
+    optel_schedule_wo: '4010405712T',
+    side: 'Top',
   },
   {
     timestamp: new Date().toUTCString(),
@@ -26,6 +28,8 @@ export default [
     type: '1240',
     picks: { cumulative_count: 133 },
     placements: { cumulative_count: 833 },
+    optel_schedule_wo: '4010405712T',
+    side: 'Top',
   },
   {
     timestamp: new Date().toUTCString(),
@@ -40,6 +44,8 @@ export default [
     type: '1240',
     picks: { cumulative_count: 133 },
     placements: { cumulative_count: 833 },
+    optel_schedule_wo: '4010405712T',
+    side: 'Top',
   },
   {
     timestamp: new Date().toUTCString(),
@@ -54,6 +60,8 @@ export default [
     type: '1240',
     picks: { cumulative_count: 522 },
     placements: { cumulative_count: 822 },
+    optel_schedule_wo: '4010405712T',
+    side: 'Top',
   },
   {
     timestamp: new Date().toUTCString(),
@@ -68,5 +76,7 @@ export default [
     type: '1240',
     picks: { cumulative_count: 101 },
     placements: { cumulative_count: 102 },
+    optel_schedule_wo: '4010405712T',
+    side: 'Top',
   },
 ];
