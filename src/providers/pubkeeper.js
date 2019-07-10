@@ -244,21 +244,12 @@ export class PubkeeperProvider extends React.Component {
     const { children } = this.props;
     const { plants, machines, nozzles, alerts, thresholds, nozzleSort, isDev, notification_numbers, current_program } = this.state;
 
-    const maxX = Math.max(...Object.values(nozzles).map(n => n.reject_sum_percent), 0.50);
-    const maxY = Math.max(...Object.values(nozzles).map(n => n.reject_sum), 100);
-    const maxZ = Math.max(...Object.values(nozzles).map(n => n.reject_factor));
-
-    console.log(current_program);
-
     return (
       <PubkeeperContext.Provider value={{
         plants,
         machines,
         nozzles,
         thresholds,
-        maxX,
-        maxY,
-        maxZ,
         alerts,
         nozzleSort,
         isDev,
@@ -285,18 +276,37 @@ export class PubkeeperProvider extends React.Component {
 
 export const withGraphData = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ nozzles, maxX, maxY, maxZ, filterItems }) =>
-      <Component
-        {...props}
-        items={Object.values(nozzles)
-        .filter(n => filterItems(n, 'graph'))
-        .map(n => ({ name: n.nozzle_id, data: [{ plant: n.plant, machine: n.machine, x: n.reject_sum_percent * 100, y: n.reject_sum, z: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor + (maxZ / 3) }] }))}
-        maxX={maxX * 100}
-        maxY={maxY}
-        maxZ={maxZ}
-        nozzles={nozzles}
-      />
-    }
+    {({ nozzles, filterItems }) => {
+      const items = Object.values(nozzles).filter(n => filterItems(n, 'graph'));
+      const maxX = Math.max(...items.map(n => n.reject_sum_percent), 0.50);
+      const maxY = Math.max(...items.map(n => n.reject_sum), 100);
+      const maxZ = Math.max(...items.map(n => n.reject_factor));
+
+      const graphItems = items.map(n => ({
+        name: n.nozzle_id,
+        data: [{
+          plant: n.plant,
+          machine: n.machine,
+          reject_sum_percent: n.reject_sum_percent * 100,
+          reject_sum: n.reject_sum,
+          reject_factor: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor,
+          x: n.reject_sum_percent * 100,
+          y: n.reject_sum,
+          z: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor + (maxZ / 3)
+        }]
+      }));
+
+      return (
+        <Component
+          {...props}
+          items={graphItems}
+          maxX={maxX * 100}
+          maxY={maxY}
+          maxZ={maxZ}
+          nozzles={nozzles}
+        />
+      );
+    }}
   </PubkeeperContext.Consumer>
 );
 

@@ -3,7 +3,7 @@ import { Chart } from '@nio/ui-kit';
 import { withGraphData } from '../providers/pubkeeper';
 import tooltip from '../util/tooltip';
 
-export default withGraphData(({ items, maxX, maxY, maxZ }) => (
+export default withGraphData(({ items, maxX, maxY }) => (
   <>
     <b>Graph</b>
     <hr className="my-1" />
@@ -39,8 +39,7 @@ export default withGraphData(({ items, maxX, maxY, maxZ }) => (
               intersect: true,
               custom: ({ seriesIndex, w }) => tooltip({
                 name: w.config.series[seriesIndex].name,
-                data: w.config.series[seriesIndex].data,
-                maxZ
+                data: w.config.series[seriesIndex].data
               }),
             },
           }}
