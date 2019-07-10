@@ -7,31 +7,37 @@
 /*    specific scss files and throw them in the css folder)       */
 
 .data-holder {
-  border-top: 1px solid $gray-lightest;
-  //border-bottom: 1px solid $gray-lightest;
   height: 120px;
   overflow-y: auto;
   overflow-x: hidden;
   margin-top: 5px;
   white-space: nowrap;
+}
 
-  &.no-height {
-    height: auto;
-  }
+.border-top {
+  border-top: 1px solid $gray-lightest;
+}
+
+.border-bottom {
+  border-bottom: 1px solid $gray-lightest;
+}
+
+.no-border {
+  border: none !important;
+}
+
+.no-height {
+  height: auto !important;
 }
 
 .toggle-row,
-.alert-row {
-  border-bottom: 1px solid $gray-lightest;
+.alert-row,
+.new-phone-row {
   padding: 5px 0;
 }
 
-.input-row {
-  padding-top:4px;
-  padding-bottom: 3px;
-}
-
 #chart-holder {
+  margin-top: 5px;
   height: 250px;
 }
 
@@ -51,14 +57,11 @@
   font-size: 10px;
 }
 
-.eyecon {
-  color: $gray-lighter;
-}
-
 .nozzle-cell {
   width: 10%;
   white-space: nowrap;
 }
+
 .nozzle-sort {
   cursor: pointer;
   .sortcon {
@@ -70,6 +73,19 @@
       color: $brand-success;
     }
   }
+}
+
+.current-program {
+  background-color: $gray-lightest !important;
+  color: $gray-dark;
+}
+
+.text-lightgrey {
+  color: $gray-lightest;
+}
+
+.threshold-cell {
+  width: 11.1111111111111%;
 }
 
 .form-control.is-invalid {

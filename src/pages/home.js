@@ -14,24 +14,28 @@ export default () => (
       </div>
       <CurrentProgram />
       <Row>
-        <Col lg="2" xs="6" className="mb-1">
+        <Col lg="2" xs="6">
           <Plants />
+          <hr className="mt-0 mb-4 d-block d-lg-none" />
         </Col>
-        <Col lg="2" xs="6" className="mb-1">
+        <Col lg="2" xs="6">
           <Machines />
+          <hr className="mt-0 mb-4 d-block d-lg-none" />
         </Col>
-        <Col lg="8" xs="12" className="mb-1">
+        <Col lg="8" xs="12">
           <Nozzles />
         </Col>
       </Row>
-      <hr />
+      <hr className="mt-0" />
       <Row>
-        <Col xs="12" id="chart-holder">
+        <Col lg="6">
           <BubbleChart />
+          <hr className="d-block d-lg-none" />
+        </Col>
+        <Col lg="6">
+          <Alerts />
         </Col>
       </Row>
-      <hr />
-      <Alerts />
     </CardBody>
   </Card>
 );

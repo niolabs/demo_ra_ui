@@ -45,12 +45,14 @@ export class PubkeeperProvider extends React.Component {
       return () => patron.off('message', this.writeThresholdsToState);
     });
 
+    this.pkClient.addBrewer('thresholds', brewer => this.thresholdBrewer = brewer);
+
     this.pkClient.addPatron('notification_numbers', (patron) => {
       patron.on('message', this.writeNotificationNumbersToState);
       return () => patron.off('message', this.writeNotificationNumbersToState);
     });
 
-    this.pkClient.addBrewer('thresholds', brewer => this.thresholdBrewer = brewer);
+    this.pkClient.addBrewer('notification_numbers', brewer => this.notificationNumberBrewer = brewer);
 
     if (isDev) {
       this.processNewData(devData);
@@ -177,8 +179,8 @@ export class PubkeeperProvider extends React.Component {
   sortNozzles = (a, b) => {
     const { nozzleSort: { asc, sortBy } } = this.state;
 
-    const sortA = sortBy === 'nozzle_id' ? a[sortBy].split('-') : a[sortBy] || 1;
-    const sortB = sortBy === 'nozzle_id' ? b[sortBy].split('-') : b[sortBy] || 1;
+    const sortA = sortBy === 'nozzle_id' ? a[sortBy].split('-') : a[sortBy] && !Number.isNaN(a[sortBy]) ? a[sortBy].toString() : 0;
+    const sortB = sortBy === 'nozzle_id' ? b[sortBy].split('-') : b[sortBy] && !Number.isNaN(b[sortBy]) ? b[sortBy].toString() : 0;
 
     if (sortBy === 'nozzle_id') {
       if (!(sortA[0] - sortB[0])) {
@@ -237,8 +239,6 @@ export class PubkeeperProvider extends React.Component {
     const maxY = Math.max(...Object.values(nozzles).map(n => n.reject_sum), 100);
     const maxZ = Math.max(...Object.values(nozzles).map(n => n.reject_factor));
 
-    console.log(thresholds);
-
     return (
       <PubkeeperContext.Provider value={{
         plants,
@@ -259,10 +259,11 @@ export class PubkeeperProvider extends React.Component {
         setNozzleSort: this.setNozzleSort,
         sortNozzles: this.sortNozzles,
         filterItems: this.filterItems,
-        updateThresholds: this.updateThresholds,
         toggleDev: this.toggleDev,
         resetSortAndFilter: this.resetSortAndFilter,
         sortMachinesAndPlants: this.sortMachinesAndPlants,
+        thresholdBrewer: this.thresholdBrewer,
+        notificationNumberBrewer: this.notificationNumberBrewer,
       }}
       >
         {children}
@@ -290,11 +291,11 @@ export const withGraphData = Component => props => (
 
 export const withThresholds = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ thresholds, updateThresholds }) =>
+    {({ thresholds, thresholdBrewer }) =>
       <Component
         {...props}
         thresholds={thresholds}
-        updateThresholds={updateThresholds}
+        brewer={thresholdBrewer}
       />
     }
   </PubkeeperContext.Consumer>
@@ -365,12 +366,13 @@ export const withAlerts = Component => props => (
   </PubkeeperContext.Consumer>
 );
 
-export const withNotifications = Component => props => (
+export const withNotificationNumbers = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ notification_numbers }) =>
+    {({ notification_numbers, notificationNumberBrewer }) =>
       <Component
         {...props}
         notification_numbers={notification_numbers}
+        brewer={notificationNumberBrewer}
       />
     }
   </PubkeeperContext.Consumer>

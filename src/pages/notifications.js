@@ -1,46 +1,57 @@
 import React from 'react';
 import { Card, CardBody, Col, Row, Button, Input } from '@nio/ui-kit';
-import { withNotifications } from '../providers/pubkeeper';
+import InputMask from 'react-input-mask';
+import { withNotificationNumbers } from '../providers/pubkeeper';
 
 class Thresholds extends React.Component {
-  state = { errors: { name: false, phone: false } };
-
-  isValid = (p) => {
-    var phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
-    var digits = p.replace(/\D/g, "");
-    return phoneRe.test(digits);
-  };
+  state = { newValues: { name: '', phone: '' }, errors: {} };
 
   handleSubmit = () => {
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const errors = { name: false, phone: false };
-    this.setState({ errors });
+    const { notification_numbers, brewer } = this.props;
+    const { newValues } = this.state;
+    const errors = {};
 
-    if (!name) {
-      errors.name = true;
+    if (!newValues.name) {
+      errors.name = 'Name is Required';
     }
-    if (!this.isValid(phone)) {
-      errors.phone = true;
+    if (!newValues.phone) {
+      errors.phone = 'Valid Phone Required';
+    }
+    if (notification_numbers.find(n => n.phone === newValues.phone)) {
+      errors.phone = 'Number Already Exists';
     }
 
-    this.setState({ errors });
-
-    if(!errors.name && !errors.phone) {
-      console.log('submitting');
+    if(!Object.keys(errors).length) {
+      notification_numbers.push({ name: newValues.name, phone: newValues.phone });
+      brewer.brewJSON(notification_numbers);
+      this.resetFields();
     } else {
-      console.log('not submitting');
+      this.setState({ errors });
     }
 
   };
 
-  handleDelete = () => {
+  updateField = (e) => {
+    const { newValues } = this.state;
+    newValues[e.target.getAttribute('id')] = e.target.value.trim();
+    this.setState({ newValues });
+  };
 
+  resetFields = () => {
+    this.setState({ newValues: { name: '', phone: '' }, errors: {} });
+  };
+
+  handleDelete = (e) => {
+    const { notification_numbers, brewer } = this.props;
+    const numberToDelete = e.currentTarget.getAttribute('id');
+    const indexInNumberArray = notification_numbers.findIndex(n => n.phone === numberToDelete);
+    notification_numbers.splice(indexInNumberArray, 1);
+    brewer.brewJSON(notification_numbers);
   };
 
   render = () => {
     const { notification_numbers } = this.props;
-    const { errors: { name, phone } } = this.state;
+    const { newValues, errors } = this.state;
 
     return (
       <Card>
@@ -59,7 +70,7 @@ class Thresholds extends React.Component {
           </Row>
           <div className="data-holder no-height">
             {notification_numbers.map(i => (
-              <Row noGutters key={i.phone} data-id={i.phone} className="toggle-row">
+              <Row noGutters key={i.phone} data-id={i.phone} className="toggle-row border-bottom">
                 <Col xs="4" className="pt-2">
                   {i.name}
                 </Col>
@@ -67,26 +78,30 @@ class Thresholds extends React.Component {
                   {i.phone}
                 </Col>
                 <Col xs="4">
-                  <Button block color="danger"><i className="fa fa-ban" /></Button>
+                  <Button id={i.phone} onClick={this.handleDelete} block color="danger"><i className="fa fa-ban" /></Button>
                 </Col>
               </Row>
             ))}
           </div>
-          <Row noGutters className="toggle-row">
-            <Col xs="4" className="pr-3">
-              <Input type="text" id="name" invalid={name} />
-            </Col>
-            <Col xs="4" className="pr-3">
-              <Input type="phone" id="phone" invalid={phone} />
-            </Col>
-            <Col xs="4">
-              <Button onClick={this.handleSubmit} block color="success"><i className="fa fa-plus" /></Button>
-            </Col>
-          </Row>
+          {notification_numbers && notification_numbers.length < 5 && (
+            <Row noGutters className="new-phone-row">
+              <Col xs="4" className="pr-3">
+                <Input id="name" type="text" value={newValues.name} onChange={this.updateField} invalid={!!errors.name} />
+                {errors.phone && (<div className="text-danger text-nowrap text-xs mt-1">{errors.name}</div>)}
+              </Col>
+              <Col xs="4" className="pr-3">
+                <Input id="phone" type="phone" mask="999 999 9999" maskChar=" " tag={InputMask} invalid={!!errors.phone} value={newValues.phone} onChange={this.updateField} />
+                {errors.phone && (<div className="text-danger text-nowrap text-xs mt-1">{errors.phone}</div>)}
+              </Col>
+              <Col xs="4">
+                <Button onClick={this.handleSubmit} block color="success"><i className="fa fa-plus" /></Button>
+              </Col>
+            </Row>
+          )}
         </CardBody>
       </Card>
     )
   }
 }
 
-export default withNotifications(Thresholds);
+export default withNotificationNumbers(Thresholds);

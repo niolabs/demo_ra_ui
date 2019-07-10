@@ -11,14 +11,14 @@ const chooser = ({ label, items, toggle }) => (
         <b>ID</b>
       </Col>
     </Row>
-    <div className="data-holder">
+    <div className="data-holder border-top">
       {items.map(i => (
-        <Row noGutters key={i.key} data-id={i.key} onClick={toggle} className="toggle-row">
+        <Row noGutters key={i.key} data-id={i.key} onClick={toggle} className="toggle-row border-bottom">
           <Col xs="10">
             {i.id}
           </Col>
           <Col xs="2" className="text-right">
-            {i.visible && (<i className="mr-1 fa fa-check text-success" />)}
+            <i className={`mr-1 fa fa-check ${i.visible ? 'text-success' : 'text-lightgrey'}`} />
           </Col>
         </Row>
       ))}
