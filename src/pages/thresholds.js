@@ -13,7 +13,7 @@ class Thresholds extends React.Component {
       { name: 'reject_sum_percent', label: 'Reject Sum %', value: ''},
       { name: 'slope', label: 'Slope', value: ''},
       { name: 'left_factor', label: 'Left Factor', value: ''},
-      { name: 'right_factor', label: 'Right Up Factor', value: ''},
+      { name: 'right_up_factor', label: 'Right Up Factor', value: ''},
       { name: 'left_up_factor', label: 'Left Up Factor', value: ''},
     ]
   };
@@ -68,7 +68,7 @@ class Thresholds extends React.Component {
       t.reject_sum_percent === n.reject_sum_percent  &&
       t.slope === n.slope  &&
       t.left_factor === n.left_factor  &&
-      t.right_factor === n.right_factor  &&
+      t.right_up_factor === n.right_up_factor  &&
       t.left_up_factor === n.left_up_factor
     );
   };
@@ -86,7 +86,7 @@ class Thresholds extends React.Component {
         { name: 'reject_sum_percent', label: 'Reject Sum %', value: ''},
         { name: 'slope', label: 'Slope', value: ''},
         { name: 'left_factor', label: 'Left Factor', value: ''},
-        { name: 'right_factor', label: 'Right Up Factor', value: ''},
+        { name: 'right_up_factor', label: 'Right Up Factor', value: ''},
         { name: 'left_up_factor', label: 'Left Up Factor', value: ''},
       ]
     });

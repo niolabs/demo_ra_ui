@@ -4,7 +4,7 @@ export default [
     reject_sum_percent: 10,
     slope: 5,
     left_factor: -1,
-    right_factor: 1,
+    right_up_factor: 1,
     left_up_factor: 0.33,
     machines: [
       {plant: '1', id: 'PM1'},
@@ -16,7 +16,7 @@ export default [
     reject_sum_percent: 5,
     slope: 3,
     left_factor: -2,
-    right_factor: 2,
+    right_up_factor: 2,
     left_up_factor: 0.45,
     machines: [
       {plant: '2', id: 'PM3'},

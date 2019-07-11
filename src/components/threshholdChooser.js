@@ -9,7 +9,7 @@ export default withMachines(withThresholds(({ items, toggle, thresholds }) => {
     { name: 'reject_sum_percent', label: 'Reject Sum %', value: ''},
     { name: 'slope', label: 'Slope', value: ''},
     { name: 'left_factor', label: 'Left Factor', value: ''},
-    { name: 'right_factor', label: 'Right Up Factor', value: ''},
+    { name: 'right_up_factor', label: 'Right Up Factor', value: ''},
     { name: 'left_up_factor', label: 'Left Up Factor', value: ''},
   ];
 
@@ -18,7 +18,7 @@ export default withMachines(withThresholds(({ items, toggle, thresholds }) => {
     reject_sum_percent: '-',
     slope: '-',
     left_factor: '-',
-    right_factor: '-',
+    right_up_factor: '-',
     left_up_factor: '-',
   };
 
