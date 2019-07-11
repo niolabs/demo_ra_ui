@@ -13,7 +13,7 @@ class Thresholds extends React.Component {
       { name: 'reject_sum_percent', label: 'Reject Sum %', value: ''},
       { name: 'slope', label: 'Slope', value: ''},
       { name: 'left_factor', label: 'Left Factor', value: ''},
-      { name: 'right_factor', label: 'Right Factor', value: ''},
+      { name: 'right_factor', label: 'Right Up Factor', value: ''},
       { name: 'left_up_factor', label: 'Left Up Factor', value: ''},
     ]
   };
