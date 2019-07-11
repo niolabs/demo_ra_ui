@@ -4,7 +4,6 @@ import { withGraphData } from '../providers/pubkeeper';
 import tooltip from '../util/tooltip';
 
 export default withGraphData(({ items, maxX, maxY, maxZ }) => {
-
   const graphItems = items.map(n => ({
     name: n.nozzle_id,
     data: [{
@@ -27,7 +26,7 @@ export default withGraphData(({ items, maxX, maxY, maxZ }) => {
         <b>Select/deselect machines and nozzles above to add/remove items</b>
       </div>
       <div id="chart-holder" className="border-top">
-        {graphItems.length > 1 ? (
+        {graphItems.length ? (
           <Chart
             type="bubble"
             height="100%"

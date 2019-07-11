@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col } from '@nio/ui-kit';
 import { withNozzles } from '../providers/pubkeeper';
 
-export default withNozzles(({ items, asc, sortBy, sort, toggle }) => (
+export default withNozzles(({ items, asc, sortBy, sort, toggle, showToggle }) => (
   <>
     <b>Nozzles</b>
     <hr className="my-1" />
@@ -55,7 +55,7 @@ export default withNozzles(({ items, asc, sortBy, sort, toggle }) => (
             {parseFloat(n.reject_factor).toFixed(2)}
           </Col>
           <Col className="nozzle-cell text-right">
-            <i className={`mr-1 fa fa-check ${n.visible ? 'text-success' : 'text-lightgrey'}`} />
+            {!!showToggle && (<i className={`mr-1 fa fa-check ${n.visible ? 'text-success' : 'text-lightgrey'}`} />)}
           </Col>
         </Row>
       ))}
