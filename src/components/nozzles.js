@@ -9,7 +9,7 @@ export default withNozzles(({ items, asc, sortBy, sort, toggle }) => (
     <Row noGutters>
       {[
         { col: 'nozzle_id', label: 'Ch-Hole'},
-        { col: 'tooltype', label: 'Tooltype'},
+        { col: 'type', label: 'Tooltype'},
         { col: 'picks', label: 'Picks'},
         { col: 'placements', label: 'Placements'},
         { col: 'poss_missing', label: 'Poss Missing'},

@@ -36,6 +36,12 @@
   padding: 5px 0;
 }
 
+.toggle-row {
+  &:hover {
+    background-color: #fafafa;
+  }
+}
+
 #chart-holder {
   margin-top: 5px;
   height: 250px;
@@ -60,6 +66,10 @@
 .nozzle-cell {
   width: 10%;
   white-space: nowrap;
+  text-align: center;
+  &:first-child {
+    text-align:left !important;
+  }
 }
 
 .nozzle-sort {
@@ -86,3 +96,4 @@
 .form-control.is-invalid {
   background-image: none !important;
 }
+

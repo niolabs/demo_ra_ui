@@ -68,7 +68,7 @@ class Thresholds extends React.Component {
               <b>Number</b>
             </Col>
           </Row>
-          <div className="data-holder no-height">
+          <div className="data-holder no-height border-top">
             {notification_numbers.map(i => (
               <Row noGutters key={i.phone} data-id={i.phone} className="toggle-row border-bottom">
                 <Col xs="4" className="pt-2">

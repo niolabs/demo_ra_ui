@@ -1,10 +1,8 @@
 import React from 'react';
 import { PubkeeperClient, WebSocketBrew } from '@pubkeeper/browser-client';
 
-import devData from '../util/devData';
-import devAlerts from '../util/devAlerts';
-import devThresholds from '../util/devThresholds';
-import devNotificationNumbers from '../util/devNotificationNumbers';
+import sortNozzles from '../util/sortNozzles';
+import sortMachinesAndPlants from '../util/sortMachinesAndPlants';
 
 const PubkeeperContext = React.createContext();
 
@@ -18,12 +16,9 @@ export class PubkeeperProvider extends React.Component {
     thresholds: [],
     notification_numbers: [],
     current_program: { machine: false, optel_schedule_wo: false, side: false, latest: false },
-    isDev: false,
   };
 
   componentDidMount = async () => {
-    const { isDev } = this.state;
-
     this.pkClient = await new PubkeeperClient({
       server: `${window.PK_SECURE ? 'wss' : 'ws'}://${window.PK_HOST}:${window.PK_PORT}/ws`,
       jwt: window.PK_JWT,
@@ -31,8 +26,8 @@ export class PubkeeperProvider extends React.Component {
     }).connect();
 
     this.pkClient.addPatron('nozzle_plot', (patron) => {
-      patron.on('message', this.writeDataToState);
-      return () => patron.off('message', this.writeDataToState);
+      patron.on('message', this.writeNozzlesToState);
+      return () => patron.off('message', this.writeNozzlesToState);
     });
 
     this.pkClient.addPatron('alerts', (patron) => {
@@ -53,42 +48,12 @@ export class PubkeeperProvider extends React.Component {
     });
 
     this.pkClient.addBrewer('notification_numbers', brewer => this.notificationNumberBrewer = brewer);
-
-    if (isDev) {
-      this.processNewData(devData);
-      this.setState({ alerts: devAlerts, thresholds: devThresholds });
-    }
   };
 
-  toggleDev = () => {
-    const { isDev } = this.state;
-    const newDevState = !isDev;
-    this.setState({ isDev: newDevState });
-    if (newDevState) {
-      this.processNewData(devData);
-      this.setState({ alerts: devAlerts, thresholds: devThresholds, notification_numbers: devNotificationNumbers });
-    } else {
-      this.setState({
-        plants: {},
-        machines: {},
-        alerts: [],
-        nozzles: { placeholder: { nozzle_id: 'placeholder', reject_sum_percent: 0, reject_sum: 0, reject_factor: 0 }},
-        nozzleSort: { sortBy: 'nozzle_id', asc: true },
-        thresholds: [],
-        notification_numbers: [],
-        current_program: { machine: false, optel_schedule_wo: false, side: false, latest: false },
-      })
-    }
-  };
-
-  writeDataToState = (data) => {
+  writeNozzlesToState = (data) => {
+    const { plants, machines, nozzles } = this.state;
     const json = new TextDecoder().decode(data);
     const newData = JSON.parse(json);
-    this.processNewData(newData);
-  };
-
-  processNewData = (newData) => {
-    const { plants, machines, nozzles } = this.state;
 
     newData.map((m) => {
       plants[m.plant] = {
@@ -123,9 +88,8 @@ export class PubkeeperProvider extends React.Component {
   writeAlertsToState = (data) => {
     const { alerts } = this.state;
     const json = new TextDecoder().decode(data);
-    const newData = JSON.parse(json);
-    const alertKey = `${newData.time}-${newData.plant}-${newData.machine}-${newData.nozzle_id}`;
-    alerts[alertKey] = newData;
+    const newData = JSON.parse(json)[0];
+    alerts.push(newData);
     this.setState({ alerts });
   };
 
@@ -152,11 +116,12 @@ export class PubkeeperProvider extends React.Component {
     const k = e.currentTarget.getAttribute('data-id');
     const { machines } = this.state;
     machines[k].visible = !machines[k].visible;
+    this.setState({ machines });
 
     const visibleMachines = Object.values(machines).filter(m => m.visible);
-    const current_program = (visibleMachines.length === 1) ? visibleMachines[0] :
-      { machine: false, optel_schedule_wo: false, side: false, latest: false };
-    this.setState({ machines, current_program });
+    const atLeastOneMachineIsSelected = visibleMachines.length;
+    const current_program = (visibleMachines.length === 1) ? visibleMachines[0] : { machine: false, optel_schedule_wo: false, side: false, latest: false };
+    this.setState({ current_program, atLeastOneMachineIsSelected });
   };
 
   toggleNozzle = (e) => {
@@ -164,33 +129,41 @@ export class PubkeeperProvider extends React.Component {
     const { nozzles } = this.state;
     nozzles[k].visible = !nozzles[k].visible;
     this.setState({ nozzles });
+
+    const atLeastOneNozzleIsSelected = Object.values(nozzles).filter(m => m.visible).length;
+    this.setState({ atLeastOneNozzleIsSelected });
   };
 
-  filterItems = (n, component) => {
-    const { plants, machines, nozzles } = this.state;
+  filterGraphData = (n) => {
+    const { plants, machines, atLeastOneMachineIsSelected, atLeastOneNozzleIsSelected } = this.state;
 
-    const atLeastOneMachineIsSelected = Object.values(machines).filter(m => m.visible).length;
-    const atLeastOneNozzleIsSelected = Object.values(nozzles).filter(m => m.visible).length;
+    const thisPlant = plants[n.plant];
+    const thisMachine = machines[`${n.plant}-${n.machine}`];
 
-    if (component === 'graph') {
-      return n.nozzle_id === 'placeholder' ||
-        (
-          atLeastOneNozzleIsSelected ? n.visible && machines[`${n.plant}-${n.machine}`].visible && plants[n.plant].visible :
-            atLeastOneMachineIsSelected ? machines[`${n.plant}-${n.machine}`].visible && plants[n.plant].visible :
-              plants[n.plant].visible
-        );
-    } else if (component === 'table') {
-      return n.nozzle_id !== 'placeholder' &&
-        (
-          atLeastOneMachineIsSelected ? plants[n.plant].visible && machines[`${n.plant}-${n.machine}`].visible :
-            plants[n.plant].visible
-        );
-    } else if (component === 'alerts') {
-      return atLeastOneNozzleIsSelected ? plants[n.plant].visible && machines[`${n.plant}-${n.machine}`].visible && nozzles[`${n.plant}-${n.machine}-${n.nozzle_id}`].visible :
-        atLeastOneMachineIsSelected ? plants[n.plant].visible && machines[`${n.plant}-${n.machine}`].visible :
-          plants[n.plant].visible;
-    }
-    return true;
+    if (!thisPlant || !thisMachine) return false;
+    if (n.nozzle_id === 'placeholder') return true;
+    return atLeastOneNozzleIsSelected ? thisPlant.visible && thisMachine.visible && n.visible : atLeastOneMachineIsSelected ? thisMachine.visible && thisPlant.visible : thisPlant.visible;
+  };
+
+  filterTableData = (n) => {
+    const { plants, machines, atLeastOneMachineIsSelected } = this.state;
+
+    const thisPlant = plants[n.plant];
+    const thisMachine = machines[`${n.plant}-${n.machine}`];
+
+    if (!thisPlant || !thisMachine) return false;
+    return n.nozzle_id !== 'placeholder' && atLeastOneMachineIsSelected ? thisPlant.visible && thisMachine.visible : thisPlant.visible;
+  };
+
+  filterAlertData = (n) => {
+    const { plants, machines, nozzles, atLeastOneMachineIsSelected, atLeastOneNozzleIsSelected } = this.state;
+
+    const thisPlant = plants[n.plant];
+    const thisMachine = machines[`${n.plant}-${n.machine}`];
+    const thisNozzle = nozzles[`${n.plant}-${n.machine}-${n.nozzle_id}`];
+
+    if (!thisPlant || !thisMachine || !thisNozzle) return false;
+    return atLeastOneNozzleIsSelected ? thisPlant.visible && thisMachine.visible && thisNozzle.visible : atLeastOneMachineIsSelected ? thisPlant.visible && thisMachine.visible : thisPlant.visible;
   };
 
   setNozzleSort = (e) => {
@@ -201,48 +174,17 @@ export class PubkeeperProvider extends React.Component {
     this.setState({ nozzleSort });
   };
 
-  sortNozzles = (a, b) => {
-    const { nozzleSort: { asc, sortBy } } = this.state;
-
-    const sortA = sortBy === 'nozzle_id' ? a[sortBy].split('-') : a[sortBy] && !Number.isNaN(a[sortBy]) ? a[sortBy].toString() : 0;
-    const sortB = sortBy === 'nozzle_id' ? b[sortBy].split('-') : b[sortBy] && !Number.isNaN(b[sortBy]) ? b[sortBy].toString() : 0;
-
-    if (sortBy === 'nozzle_id') {
-      if (!(sortA[0] - sortB[0])) {
-        return asc ? sortA[1] - sortB[1] : sortB[1] - sortA[1];
-      }
-      return asc ? sortA[0] - sortB[0] : sortB[0] - sortA[0];
-    }
-    return asc ? sortA - sortB : sortB - sortA;
-  };
-
-  sortMachinesAndPlants = (a, b) => {
-    const sortAAlpha = a.id.replace(/[0-9]/g, '');
-    const sortBAlpha = b.id.replace(/[0-9]/g, '');
-
-    const sortANumeric = a.id.replace(/\D/g,'');
-    const sortBNumeric = b.id.replace(/\D/g,'');
-
-    if (!sortAAlpha && !sortBAlpha) {
-      return sortANumeric - sortBNumeric;
-    }
-    if (sortAAlpha === sortBAlpha) {
-      return sortANumeric > sortBNumeric ? 1 : -1;
-    }
-    return sortAAlpha > sortBAlpha ? 1 : -1;
-  };
-
   resetSortAndFilter = () => {
     const { nozzles, machines, plants } = this.state;
     Object.values(nozzles).map(i => i.visible = false);
     Object.values(machines).map(i => i.visible = false);
     Object.values(plants).map(i => i.visible = false);
-    this.setState({ nozzles, machines, plants, nozzleSort: { sortBy: 'id', asc: true }})
+    this.setState({ nozzles, machines, plants, nozzleSort: { sortBy: 'nozzle_id', asc: true }})
   };
 
   render = () => {
     const { children } = this.props;
-    const { plants, machines, nozzles, alerts, thresholds, nozzleSort, isDev, notification_numbers, current_program } = this.state;
+    const { plants, machines, nozzles, alerts, thresholds, nozzleSort, notification_numbers, current_program } = this.state;
 
     return (
       <PubkeeperContext.Provider value={{
@@ -252,18 +194,17 @@ export class PubkeeperProvider extends React.Component {
         thresholds,
         alerts,
         nozzleSort,
-        isDev,
         notification_numbers,
         current_program,
         togglePlant: this.togglePlant,
         toggleMachine: this.toggleMachine,
         toggleNozzle: this.toggleNozzle,
         setNozzleSort: this.setNozzleSort,
-        sortNozzles: this.sortNozzles,
-        filterItems: this.filterItems,
+        filterGraphData: this.filterGraphData,
+        filterTableData: this.filterTableData,
+        filterAlertData: this.filterAlertData,
         toggleDev: this.toggleDev,
         resetSortAndFilter: this.resetSortAndFilter,
-        sortMachinesAndPlants: this.sortMachinesAndPlants,
         thresholdBrewer: this.thresholdBrewer,
         notificationNumberBrewer: this.notificationNumberBrewer,
       }}
@@ -276,34 +217,20 @@ export class PubkeeperProvider extends React.Component {
 
 export const withGraphData = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ nozzles, filterItems }) => {
-      const items = Object.values(nozzles).filter(n => filterItems(n, 'graph'));
+    {({ nozzles, filterGraphData }) => {
+
+      const items = Object.values(nozzles).filter(n => filterGraphData(n));
       const maxX = Math.max(...items.map(n => n.reject_sum_percent), 0.50);
       const maxY = Math.max(...items.map(n => n.reject_sum), 100);
       const maxZ = Math.max(...items.map(n => n.reject_factor));
 
-      const graphItems = items.map(n => ({
-        name: n.nozzle_id,
-        data: [{
-          plant: n.plant,
-          machine: n.machine,
-          reject_sum_percent: n.reject_sum_percent * 100,
-          reject_sum: n.reject_sum,
-          reject_factor: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor,
-          x: n.reject_sum_percent * 100,
-          y: n.reject_sum,
-          z: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor + (maxZ / 3)
-        }]
-      }));
-
       return (
         <Component
           {...props}
-          items={graphItems}
+          items={items}
           maxX={maxX * 100}
           maxY={maxY}
           maxZ={maxZ}
-          nozzles={nozzles}
         />
       );
     }}
@@ -324,12 +251,10 @@ export const withThresholds = Component => props => (
 
 export const withNozzles = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ nozzles, setNozzleSort, sortNozzles, nozzleSort: { asc, sortBy }, toggleNozzle, filterItems }) =>
+    {({ nozzles, setNozzleSort, nozzleSort: { asc, sortBy }, toggleNozzle, filterTableData }) =>
       <Component
         {...props}
-        items={Object.values(nozzles)
-        .filter(n => filterItems(n, 'table'))
-        .sort(sortNozzles)}
+        items={Object.values(nozzles).filter(n => filterTableData(n)).sort((a, b) => sortNozzles({ a, b, asc, sortBy }))}
         asc={asc}
         sortBy={sortBy}
         sort={setNozzleSort}
@@ -354,11 +279,11 @@ export const withPlants = Component => props => (
 
 export const withMachines = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ machines, plants, toggleMachine, sortMachinesAndPlants }) =>
+    {({ machines, plants, toggleMachine }) =>
       <Component
         {...props}
         label="Machines"
-        items={Object.values(machines).filter(k => plants[k.plant].visible).sort(sortMachinesAndPlants)}
+        items={Object.values(machines).filter(k => plants[k.plant].visible).sort((a, b) => sortMachinesAndPlants({ a, b }))}
         toggle={toggleMachine}
       />
     }
@@ -367,10 +292,10 @@ export const withMachines = Component => props => (
 
 export const withVisibleMachines = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ machines, plants, sortMachinesAndPlants }) =>
+    {({ machines, plants }) =>
       <Component
         {...props}
-        items={Object.values(machines).filter(k => plants[k.plant].visible && k.visible).map(i => ({ id: i.id, plant: i.plant })).sort(sortMachinesAndPlants)}
+        items={Object.values(machines).filter(k => plants[k.plant].visible && k.visible).map(i => ({ id: i.id, plant: i.plant })).sort((a, b) => sortMachinesAndPlants({ a, b }))}
       />
     }
   </PubkeeperContext.Consumer>
@@ -378,10 +303,10 @@ export const withVisibleMachines = Component => props => (
 
 export const withAlerts = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ alerts, filterItems }) =>
+    {({ alerts, filterAlertData }) =>
       <Component
         {...props}
-        alerts={alerts.filter(n => filterItems(n, 'alerts'))}
+        alerts={alerts.filter(n => filterAlertData(n))}
       />
     }
   </PubkeeperContext.Consumer>
@@ -394,18 +319,6 @@ export const withNotificationNumbers = Component => props => (
         {...props}
         notification_numbers={notification_numbers}
         brewer={notificationNumberBrewer}
-      />
-    }
-  </PubkeeperContext.Consumer>
-);
-
-export const withToggleDev = Component => props => (
-  <PubkeeperContext.Consumer>
-    {({ toggleDev, isDev }) =>
-      <Component
-        {...props}
-        toggleDev={toggleDev}
-        isDev={isDev}
       />
     }
   </PubkeeperContext.Consumer>

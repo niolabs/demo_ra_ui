@@ -5,7 +5,6 @@ import { NavLink } from 'react-router-dom';
 import { withSortAndFilterReset } from '../providers/pubkeeper';
 import '../app.scss';
 import Routes from './routes';
-import ToggleDev from './toggleDev';
 
 class App extends Component {
   state = { navOpen: false };
@@ -36,9 +35,6 @@ class App extends Component {
               </NavItem>
               <NavItem>
                 <NavLink onClick={this.handleNavigation} exact to="/notifications">Manage Notifications</NavLink>
-              </NavItem>
-              <NavItem>
-                <ToggleDev />
               </NavItem>
             </Nav>
           </Collapse>
