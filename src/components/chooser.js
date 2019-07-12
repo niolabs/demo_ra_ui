@@ -1,6 +1,7 @@
 import React from 'react';
-import { Row, Col } from '@nio/ui-kit';
+import { Row, Col, Loader } from '@nio/ui-kit';
 import { withPlants, withMachines } from '../providers/pubkeeper';
+import ChooserRow from './chooserRow';
 
 const chooser = ({ label, items, toggle }) => (
   <>
@@ -11,16 +12,21 @@ const chooser = ({ label, items, toggle }) => (
         <b>ID</b>
       </Col>
     </Row>
-    <div className="data-holder border-top">
-      {items.map(i => (
-        <Row noGutters key={i.key} data-id={i.key} onClick={toggle} className="toggle-row border-bottom">
-          <Col xs="10">
-            {i.id}
-          </Col>
-          <Col xs="2" className="text-right">
-            <i className={`mr-1 fa fa-check ${i.visible ? 'text-success' : 'text-lightgrey'}`} />
-          </Col>
-        </Row>
+    <div className="data-holder border-top chooser">
+      {!items.length && label === 'Plants' ? (
+        <Loader />
+      ) : !items.length ? (
+        <div className="text-xs text-center pt-5">
+          Please select a plant.
+        </div>
+      ) : items.map(i => (
+        <ChooserRow
+          key={i.key}
+          itemKey={i.key}
+          id={i.id}
+          visible={i.visible}
+          toggle={toggle}
+        />
       ))}
     </div>
   </>

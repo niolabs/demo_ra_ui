@@ -45,14 +45,14 @@ export default withMachines(withThresholds(({ items, toggle, thresholds }) => {
           </Col>
         ))}
       </Row>
-      <div className="data-holder border-top">
+      <div className="data-holder border-top chooser">
         {itemsWithThreshholds.map(i => (
-          <Row noGutters key={i.key} data-id={i.key} onClick={toggle} className="toggle-row border-bottom">
+          <Row noGutters key={i.key} onClick={() => toggle(i.key)} className={`toggle-row border-bottom ${i.visible}`}>
             <Col className="threshold-cell">
               {i.id}
             </Col>
             <Col className="threshold-cell text-center">
-              <i className={`mr-1 fa fa-check ${i.visible ? 'text-success' : 'text-lightgrey'}`} />
+              <i className="mr-1 fa fa-check" />
             </Col>
             <Col className="threshold-cell" />
             {fields.map(f => (

@@ -34,7 +34,7 @@ class Thresholds extends React.Component {
     if (!Object.keys(errors).length) {
       // loop through existing thresholds and remove any of the selected machines from existing threshold sets
       thresholds.map(t => {
-        items.forEach(m => {
+        items.map(m => {
           const existingMachineIndex = t.machines.findIndex(tn => tn.plant === m.plant && tn.id === m.id);
           if (existingMachineIndex !== -1) t.machines.splice(existingMachineIndex, 1);
         });
@@ -45,7 +45,7 @@ class Thresholds extends React.Component {
 
       if (existingMatchingThresholdIndex !== -1) {
         // add the machine to the existing threshold set
-        items.forEach(m => {
+        items.map(m => {
           thresholds[existingMatchingThresholdIndex].machines.push(m);
         });
       } else {
@@ -125,8 +125,8 @@ class Thresholds extends React.Component {
                   <Row>
                     {formFields.map(f => (
                       <Col xs="12" lg="4" key={f.name} className="text-nowrap mt-2">
-                        <div className={`text-nowrap text-xs mb-1 ${errors[f.name] ? 'text-danger' : ''}`}><b>{errors[f.name] && `${f.label} ${errors[f.name]}`}&nbsp;</b></div>
-                        <Input step="0.1" placeholder={f.label} invalid={!!errors[f.name]} id={f.name} disabled={!items.length} value={f.value} type="number" onChange={this.updateField} />
+                        <div className={`text-nowrap text-xs mb-1 ${errors[f.name] ? 'text-danger' : ''}`}><b>{errors[f.name] ? `${f.label} ${errors[f.name]}` : f.label}&nbsp;</b></div>
+                        <Input step="0.1" invalid={!!errors[f.name]} id={f.name} disabled={!items.length} value={f.value} type="number" onChange={this.updateField} />
                       </Col>
                     ))}
                   </Row>

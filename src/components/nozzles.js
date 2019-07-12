@@ -1,8 +1,9 @@
 import React from 'react';
-import { Row, Col } from '@nio/ui-kit';
+import { Row, Col, Loader } from '@nio/ui-kit';
 import { withNozzles } from '../providers/pubkeeper';
+import NozzleRow from './nozzleRow';
 
-export default withNozzles(({ items, asc, sortBy, sort, toggle, showToggle }) => (
+export default withNozzles(({ items, asc, sortBy, sort, toggle, showToggle, choosingMachine }) => (
   <>
     <b>Nozzles</b>
     <hr className="my-1" />
@@ -24,40 +25,17 @@ export default withNozzles(({ items, asc, sortBy, sort, toggle, showToggle }) =>
       ))}
       <Col />
     </Row>
-    <div className="data-holder border-top">
-      {items && items.map(n => (
-        <Row noGutters key={n.key} data-id={n.key} onClick={toggle} className="toggle-row border-bottom">
-          <Col className="nozzle-cell">
-            {n.nozzle_id}
-          </Col>
-          <Col className="nozzle-cell">
-            {n.type}
-          </Col>
-          <Col className="nozzle-cell">
-            {n.picks}
-          </Col>
-          <Col className="nozzle-cell">
-            {n.placements}
-          </Col>
-          <Col className="nozzle-cell">
-            {n.poss_missing}
-          </Col>
-          <Col className="nozzle-cell">
-            {n.comp_missing}
-          </Col>
-          <Col className="nozzle-cell">
-            {n.reject_sum}
-          </Col>
-          <Col className="nozzle-cell">
-            {parseFloat(n.reject_sum_percent * 100).toFixed(2)}%
-          </Col>
-          <Col className="nozzle-cell">
-            {parseFloat(n.reject_factor).toFixed(2)}
-          </Col>
-          <Col className="nozzle-cell text-right">
-            {!!showToggle && (<i className={`mr-1 fa fa-check ${n.visible ? 'text-success' : 'text-lightgrey'}`} />)}
-          </Col>
-        </Row>
+    <div className="data-holder border-top nozzle-chooser">
+      {choosingMachine || !items ? (
+        <Loader />
+      ) : items.map(n => (
+        <NozzleRow
+          key={n.key}
+          itemKey={n.key}
+          toggle={toggle}
+          showToggle={showToggle}
+          {...n}
+        />
       ))}
     </div>
   </>

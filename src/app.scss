@@ -12,6 +12,7 @@
   overflow-x: hidden;
   margin-top: 5px;
   white-space: nowrap;
+  position:relative;
 }
 
 .border-top {
@@ -36,11 +37,63 @@
   padding: 5px 0;
 }
 
-.toggle-row {
-  &:hover {
-    background-color: #fafafa;
+.nozzle-chooser {
+  .toggle-row {
+    .fa-check {
+      color: $gray-lightest;
+    }
+
+    &.true {
+      .fa-check {
+        color: $brand-success;
+      }
+    }
   }
 }
+
+.chooser {
+  &:not(:active) {
+    .toggle-row {
+      .fa-check {
+        color: $gray-lightest;
+      }
+      &.true {
+        .fa-check {
+          color: $brand-success;
+        }
+      }
+    }
+  }
+  &:active {
+    .toggle-row {
+      .fa-check {
+        color: $gray-lightest;
+      }
+
+      &.true {
+        .fa-check {
+          color: $brand-success;
+        }
+      }
+      &:not(:active) {
+        .fa-check {
+          color: $gray-lightest !important;
+        }
+      }
+      &:active {
+        .fa-check {
+          color: $brand-success !important;
+        }
+        &.true {
+          .fa-check {
+            color: $gray-lightest !important;
+          }
+        }
+      }
+    }
+  }
+}
+
 
 #chart-holder {
   margin-top: 5px;

@@ -15,7 +15,7 @@ export class PubkeeperProvider extends React.Component {
     nozzleSort: { sortBy: 'nozzle_id', asc: true },
     thresholds: [],
     notification_numbers: [],
-    current_program: { machine: false, optel_schedule_wo: false, side: false, latest: false },
+    current_program: {},
     atLeastOneNozzleIsSelected: false,
     atLeastOneMachineIsSelected: false,
   };
@@ -57,6 +57,9 @@ export class PubkeeperProvider extends React.Component {
     const json = new TextDecoder().decode(data);
     const newData = JSON.parse(json);
 
+    let needToSortPlants = false;
+    let needToSortMachines = false;
+
     newData.map((m) => {
       if (!m.plant) m.plant = '1001';
 
@@ -74,7 +77,7 @@ export class PubkeeperProvider extends React.Component {
         visible: machines[`${m.plant}-${m.machine}`] ? machines[`${m.plant}-${m.machine}`].visible : false,
         optel_schedule_wo: m.optel_schedule_wo,
         side: m.side,
-        latest: new Date(m.timestamp).toUTCString(),
+        timestamp: m.timestamp,
       };
 
       nozzles[`${m.plant}-${m.machine}-${m.nozzle_id}`] = {
@@ -109,41 +112,50 @@ export class PubkeeperProvider extends React.Component {
     this.setState({ notification_numbers });
   };
 
-  togglePlant = (e) => {
-    const k = e.currentTarget.getAttribute('data-id');
+  togglePlant = (k, toFalse = false) => {
+    const { plants } = this.state;
+    plants[k].visible = toFalse ? false : !plants[k].visible;
+    this.setState({ plants }, () => this.handlePlantCascade(k, plants[k].visible));
+  };
+
+  handlePlantCascade = (k, selecting = false) => {
     const { plants, machines } = this.state;
-    plants[k].visible = !plants[k].visible;
-    this.setState({ plants });
-
-    if(!plants[k].visible) {
-      Object.keys(machines).filter(m => machines[m].key === `${k}-${machines[m].id}` && machines[m].visible).forEach(m => this.toggleMachine(null, m));
+    if(selecting) {
+      Object.keys(plants).filter(p => p !== k).map(p => this.togglePlant(p, true));
+    } else {
+      Object.keys(machines).filter(m => machines[m].key === `${k}-${machines[m].id}` && machines[m].visible).map(m => this.toggleMachine(m, true));
     }
   };
 
-  toggleMachine = (e, id) => {
-    const k = e ? e.currentTarget.getAttribute('data-id') : id;
+  toggleMachine = (k, toFalse = false) => {
+    let { machines, current_program } = this.state;
+    machines[k].visible = toFalse ? false : !machines[k].visible;
+
+    if(!toFalse) {
+      current_program = machines[k].visible ? machines[k] : {};
+    }
+
+    this.setState({ machines, current_program }, () => {
+      this.handleMachineCascade(k, machines[k].visible);
+      this.setAtLeastOneMachineIsSelected();
+    });
+  };
+
+  handleMachineCascade = (k, selecting = false) => {
     const { machines, nozzles } = this.state;
-    machines[k].visible = e ? !machines[k].visible : false;
-    this.setState({ machines });
-
-    if(!machines[k].visible) {
-      Object.keys(nozzles).filter(n => nozzles[n].key === `${machines[k].plant}-${machines[k].id}-${nozzles[n].nozzle_id}` && nozzles[n].visible).forEach(n => this.toggleNozzle(null, n));
+    if(selecting) {
+      Object.keys(machines).filter(m => m !== k).map(m => this.toggleMachine(m, true));
+    } else {
+      Object.keys(nozzles).filter(n => nozzles[n].key === `${machines[k].plant}-${machines[k].id}-${nozzles[n].nozzle_id}` && nozzles[n].visible).map(n => this.toggleNozzle(n, true));
     }
-
-    this.setAtLeastOneMachineIsSelected();
-
-    const visibleMachines = Object.values(machines).filter(m => m.visible);
-    const current_program = (visibleMachines.length === 1) ? visibleMachines[0] : { machine: false, optel_schedule_wo: false, side: false, latest: false };
-    this.setState({ current_program });
   };
 
-  toggleNozzle = (e, id) => {
-    const k = e ? e.currentTarget.getAttribute('data-id') : id;
+  toggleNozzle = (k, toFalse = false) => {
     const { nozzles, atLeastOneMachineIsSelected } = this.state;
 
-    if (e && !atLeastOneMachineIsSelected) return false;
+    if (!atLeastOneMachineIsSelected) return false;
 
-    nozzles[k].visible = e ? !nozzles[k].visible : false;
+    nozzles[k].visible = toFalse ? false : !nozzles[k].visible;
     this.setState({ nozzles });
     this.setAtLeastOneNozzleIsSelected();
   };
@@ -203,19 +215,10 @@ export class PubkeeperProvider extends React.Component {
 
   render = () => {
     const { children } = this.props;
-    const { plants, machines, nozzles, alerts, thresholds, nozzleSort, notification_numbers, current_program, atLeastOneMachineIsSelected } = this.state;
 
     return (
       <PubkeeperContext.Provider value={{
-        plants,
-        machines,
-        nozzles,
-        thresholds,
-        alerts,
-        nozzleSort,
-        notification_numbers,
-        current_program,
-        atLeastOneMachineIsSelected,
+        ...this.state,
         togglePlant: this.togglePlant,
         toggleMachine: this.toggleMachine,
         toggleNozzle: this.toggleNozzle,

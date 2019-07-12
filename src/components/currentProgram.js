@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Row, Col } from '@nio/ui-kit';
 import { withCurrentProgram } from '../providers/pubkeeper';
 
-export default withCurrentProgram(({ machine, optel_schedule_wo, side, latest }) => (
+export default withCurrentProgram(memo(({ machine, optel_schedule_wo, side, timestamp }) => (
   <div className="my-3 py-2 border-top border-bottom">
     <Row style={{ lineHeight: 1 }}>
       <Col lg="3" className="text-nowrap text-center text-lg-left">
@@ -25,9 +25,9 @@ export default withCurrentProgram(({ machine, optel_schedule_wo, side, latest })
         <hr className="my-2 d-block d-lg-none" />
       </Col>
       <Col lg="3" className="text-nowrap text-center">
-        <b>{latest || '-'}</b><br />
+        <b>{timestamp || '-'}</b><br />
         <span className="text-xs">latest date/time</span>
       </Col>
     </Row>
   </div>
-));
+)));
