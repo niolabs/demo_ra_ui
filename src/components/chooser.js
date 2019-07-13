@@ -14,7 +14,9 @@ const chooser = ({ label, items, toggle }) => (
     </Row>
     <div className="data-holder border-top chooser">
       {!items.length && label === 'Plants' ? (
-        <Loader />
+        <div className="text-xs text-center pt-5">
+          Loading plants...
+        </div>
       ) : !items.length ? (
         <div className="text-xs text-center pt-5">
           Please select a plant.

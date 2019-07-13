@@ -7,13 +7,11 @@ const sortMachinesAndPlants = ({ a, b }) => {
     const sortANumeric = a.id.replace(/\D/g,'');
     const sortBNumeric = b.id.replace(/\D/g,'');
 
-    if (!sortAAlpha && !sortBAlpha) {
-      return sortANumeric - sortBNumeric;
-    }
-    if (sortAAlpha === sortBAlpha) {
-      return sortANumeric > sortBNumeric ? 1 : -1;
-    }
-    return sortAAlpha > sortBAlpha ? 1 : -1;
+    if (!sortAAlpha && !sortBAlpha) return sortANumeric - sortBNumeric;
+
+    if (sortAAlpha === sortBAlpha) return sortANumeric > sortBNumeric ? 1 : -1;
+
+    return sortAAlpha < sortBAlpha ? 1 : -1;
 
   } catch (e) {
 
