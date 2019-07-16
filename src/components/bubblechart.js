@@ -37,14 +37,14 @@ export default withGraphData(({ items, maxX, maxY, maxZ }) => {
               dataLabels: { enabled: false },
               xaxis: {
                 min: 0,
-                max: maxX === 50 ? 50 : maxX * 1.2,
+                max: maxX <= 50 ? 50 : maxX * 1.2,
                 tickAmount: 5,
                 labels: { formatter: val => `${val.toFixed(0)}%`, align: 'center', offsetX: -5 },
                 title: { text: 'reject sum %' },
               },
               yaxis: {
                 min: 0,
-                max: () => maxY === 100 ? 100 : maxY * 1.2,
+                max: () => maxY <= 100 ? 100 : maxY * 1.2,
                 tickAmount: 5,
                 labels: { formatter: val => val.toFixed(0) },
                 title: { text: 'reject sum' },
