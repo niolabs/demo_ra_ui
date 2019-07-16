@@ -6,16 +6,10 @@ import { Plants } from '../components/chooser';
 import Alerts from '../components/alerts';
 
 class Thresholds extends React.Component {
-  state = {
-    errors: {},
-    formFields: [
-      { name: 'reject_quantity', label: 'Reject Qty', value: '' },
-      { name: 'reject_sum_percent', label: 'Reject Sum %', value: ''},
-      { name: 'slope', label: 'Slope', value: ''},
-      { name: 'left_factor', label: 'Left Factor', value: ''},
-      { name: 'right_up_factor', label: 'Right Up Factor', value: ''},
-      { name: 'left_up_factor', label: 'Left Up Factor', value: ''},
-    ]
+  state = { errors: {} };
+
+  componentDidMount = () => {
+    this.resetFields();
   };
 
   handleSubmit = () => {
@@ -27,7 +21,6 @@ class Thresholds extends React.Component {
 
     formFields.map(f => {
       if (!f.value) errors[f.name] = 'is required';
-      if (f.name === 'left_factor' && f.value > -1) errors[f.name] = 'must be negative';
       if (!errors[f.name]) newThresholdObject[f.name] = f.value;
     });
 
@@ -81,13 +74,14 @@ class Thresholds extends React.Component {
 
   resetFields = () => {
     this.setState({
+      errors: {},
       formFields: [
-        { name: 'reject_quantity', label: 'Reject Qty', value: '' },
-        { name: 'reject_sum_percent', label: 'Reject Sum %', value: ''},
-        { name: 'slope', label: 'Slope', value: ''},
-        { name: 'left_factor', label: 'Left Factor', value: ''},
-        { name: 'right_up_factor', label: 'Right Up Factor', value: ''},
-        { name: 'left_up_factor', label: 'Left Up Factor', value: ''},
+        { name: 'reject_quantity', label: 'Reject Qty', placeholder: 'Enter Qty', value: '', step: '.1' },
+        { name: 'reject_sum_percent', label: 'Reject Sum %', placeholder: 'Enter %', value: '', step: '.1'},
+        { name: 'slope', label: 'Slope', placeholder: 'Enter Slope', value: '', step: '.1'},
+        { name: 'left_factor', label: 'Left Factor', placeholder: 'Enter Left Factor', value: '', step: '.1'},
+        { name: 'right_up_factor', label: 'Right Up Factor', placeholder: 'Enter', value: '', step: '.1'},
+        { name: 'left_up_factor', label: 'Left Up Factor', placeholder: 'Enter', value: '', step: '.1'},
       ]
     });
   };
@@ -123,10 +117,10 @@ class Thresholds extends React.Component {
                 </div>
                 <div className="data-holder no-height border-top border-bottom mb-2 pb-4">
                   <Row>
-                    {formFields.map(f => (
+                    {formFields && formFields.map(f => (
                       <Col xs="12" lg="4" key={f.name} className="text-nowrap mt-2">
                         <div className={`text-nowrap text-xs mb-1 ${errors[f.name] ? 'text-danger' : ''}`}><b>{errors[f.name] ? `${f.label} ${errors[f.name]}` : f.label}&nbsp;</b></div>
-                        <Input step="0.1" invalid={!!errors[f.name]} id={f.name} disabled={!items.length} value={f.value} type="number" onChange={this.updateField} />
+                        <Input step={f.step} placeholder={f.placeholder} invalid={!!errors[f.name]} id={f.name} disabled={!items.length} value={f.value} type="number" onChange={this.updateField} />
                       </Col>
                     ))}
                   </Row>

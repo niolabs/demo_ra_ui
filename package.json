@@ -14,10 +14,7 @@
   "dependencies": {
     "@nio/ui-kit": "^2.1.0",
     "@pubkeeper/browser-client": "^4.0.4",
-    "auth0-js": "^9.11.1",
     "font-awesome": "^4.7.0",
-    "history": "^4.9.0",
-    "json-stringify-pretty-compact": "^2.0.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -64,7 +61,7 @@
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "webpack": "^4.35.3",
-    "webpack-cli": "^3.3.5",
+    "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2",
     "webpack-merge": "^4.2.1"
   }

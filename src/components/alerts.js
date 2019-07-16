@@ -1,8 +1,8 @@
 import React from 'react';
-import { Row, Col } from '@nio/ui-kit';
+import { Row, Col, Modal, ModalHeader, ModalBody } from '@nio/ui-kit';
 import { withAlerts } from '../providers/pubkeeper';
 
-export default withAlerts(({ alerts }) => (
+export default withAlerts(({ alerts, alertDetail, toggleAlertDetail }) => (
   <>
     <b>Alerts</b>
     <hr className="my-1" />
@@ -25,9 +25,9 @@ export default withAlerts(({ alerts }) => (
     </Row>
     <div className="data-holder border-top">
       {alerts.length ? alerts.map(a => (
-        <Row key={`${a.nozzle_id}-${a.time}-${a.description}`} className="alert-row border-bottom">
+        <Row key={`${a.nozzle_id}-${a.time}-${a.description}`} id={`${a.nozzle_id}-${a.time}-${a.description}`} onClick={toggleAlertDetail} className="alert-row border-bottom">
           <Col xs="4" className="text-nowrap">
-            {a.time}
+            {a.time.replace('.0000000Z', '')}
           </Col>
           <Col xs="1" className="text-center text-nowrap">
             {a.plant}
@@ -38,7 +38,7 @@ export default withAlerts(({ alerts }) => (
           <Col xs="1" className="text-center text-nowrap">
             {a.nozzle_id}
           </Col>
-          <Col xs="5" className="text-nowrap">
+          <Col xs="5" className="text-nowrap alert-description">
             {a.description}
           </Col>
         </Row>
@@ -46,5 +46,46 @@ export default withAlerts(({ alerts }) => (
         <div className="text-center pt-5">no alerts</div>
       )}
     </div>
+    <Modal isOpen={!!alertDetail} toggle={toggleAlertDetail}>
+      <ModalHeader toggle={toggleAlertDetail}>Alert Detail</ModalHeader>
+      {!!alertDetail && (
+        <ModalBody>
+          <Row>
+            <Col xs="4">
+              Time
+            </Col>
+            <Col xs="8">
+              {alertDetail.time.replace('.0000000Z', '')}
+            </Col>
+          </Row>
+          <Row>
+            <Col xs="4">
+              Plant
+            </Col>
+            <Col xs="8">
+              {alertDetail.plant}
+            </Col>
+          </Row>
+          <Row>
+            <Col xs="4">
+              Machine
+            </Col>
+            <Col xs="8">
+              {alertDetail.machine}
+            </Col>
+          </Row>
+          <Row>
+            <Col xs="4">
+              Nozzle
+            </Col>
+            <Col xs="8">
+              {alertDetail.nozzle_id}
+            </Col>
+          </Row>
+          <hr />
+          {alertDetail.description}
+        </ModalBody>
+      )}
+    </Modal>
   </>
 ));

@@ -18,6 +18,7 @@ export class PubkeeperProvider extends React.Component {
     current_program: {},
     atLeastOneNozzleIsSelected: false,
     atLeastOneMachineIsSelected: false,
+    alertDetail: false,
   };
 
   componentDidMount = async () => {
@@ -79,7 +80,7 @@ export class PubkeeperProvider extends React.Component {
         visible: machines[machineKey] ? machines[machineKey].visible : false,
         optel_schedule_wo: m.optel_schedule_wo,
         side: m.side,
-        timestamp: m.timestamp,
+        timestamp: m.timestamp.replace('.0000000Z', ''),
       };
 
       nozzles[nozzleKey] = {
@@ -98,6 +99,7 @@ export class PubkeeperProvider extends React.Component {
     const { alerts } = this.state;
     const json = new TextDecoder().decode(data);
     const newData = JSON.parse(json)[0];
+    newData.id = `${newData.nozzle_id}-${newData.time}-${newData.description}`;
     alerts.push(newData);
     this.setState({ alerts });
   };
@@ -217,6 +219,12 @@ export class PubkeeperProvider extends React.Component {
     this.setState({ nozzles, machines, plants, nozzleSort: { sortBy: 'nozzle_id', asc: true }})
   };
 
+  toggleAlertDetail = (e) => {
+    const { alertDetail, alerts } = this.state;
+    const newAlertDetail = alertDetail ? false : alerts.find(a => a.id === e.currentTarget.getAttribute('id'));
+    this.setState({ alertDetail: newAlertDetail });
+  };
+
   render = () => {
     const { children } = this.props;
 
@@ -230,7 +238,7 @@ export class PubkeeperProvider extends React.Component {
         filterGraphData: this.filterGraphData,
         filterTableData: this.filterTableData,
         filterAlertData: this.filterAlertData,
-        toggleDev: this.toggleDev,
+        toggleAlertDetail: this.toggleAlertDetail,
         resetSortAndFilter: this.resetSortAndFilter,
         thresholdBrewer: this.thresholdBrewer,
         notificationNumberBrewer: this.notificationNumberBrewer,
@@ -326,9 +334,11 @@ export const withVisibleMachines = Component => () => (
 
 export const withAlerts = Component => () => (
   <PubkeeperContext.Consumer>
-    {({ alerts, filterAlertData }) =>
+    {({ alerts, filterAlertData, alertDetail, toggleAlertDetail }) =>
       <Component
         alerts={alerts.filter(n => filterAlertData(n))}
+        alertDetail={alertDetail}
+        toggleAlertDetail={toggleAlertDetail}
       />
     }
   </PubkeeperContext.Consumer>
