@@ -21,7 +21,7 @@ class Thresholds extends React.Component {
 
     formFields.map(f => {
       if (!f.value) errors[f.name] = 'is required';
-      if (!errors[f.name]) newThresholdObject[f.name] = f.value;
+      if (!errors[f.name]) newThresholdObject[f.name] = parseFloat(f.value);
     });
 
     if (!Object.keys(errors).length) {
@@ -68,7 +68,9 @@ class Thresholds extends React.Component {
 
   updateField = (e) => {
     const { formFields } = this.state;
-    formFields.find(f => f.name === e.target.getAttribute('id')).value = parseFloat(e.target.value);
+    const newValue = e.target.value;
+    console.log(newValue);
+    formFields.find(f => f.name === e.target.getAttribute('id')).value = newValue;
     this.setState({ formFields });
   };
 
