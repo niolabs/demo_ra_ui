@@ -111,9 +111,14 @@ export class PubkeeperProvider extends React.Component {
     const { alerts } = this.state;
     try {
       const json = new TextDecoder().decode(data);
-      const newData = JSON.parse(json)[0];
-      newData.id = `${newData.nozzle_id}-${newData.time}-${newData.description}`;
-      alerts.push(newData);
+      const newData = JSON.parse(json);
+
+      newData.map(na => {
+        na.id = `${na.nozzle_id}-${na.time}-${na.description}`;
+        if (!alerts.find(a => a.id === na.id )) {
+          alerts.push(na);
+        }
+      });
       this.setState({ alerts });
     } catch(e) {
       console.log('bad alerts data', data, e)
