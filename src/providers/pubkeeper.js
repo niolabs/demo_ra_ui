@@ -62,19 +62,21 @@ export class PubkeeperProvider extends React.Component {
     try {
       json = new TextDecoder().decode(data);
     } catch(e) {
-      console.log('could not TextDecode binary PK data', data, e)
+      //console.log('could not TextDecode binary PK data', data, e)
     }
 
     try {
       newData = JSON.parse(json);
     } catch(e) {
-      console.log('decoded PK data string was not valid json', json, e)
+      //console.log('decoded PK data string was not valid json', json, e)
     }
 
     newData && newData.map((m) => {
       const plantKey = m.plant;
       const machineKey = `${m.plant}-${m.machine}`;
       const nozzleKey = `${m.plant}-${m.machine}-${m.nozzle_id}`;
+
+      // if (nozzleKey === '1020-GC4-4-18')  m.reject_sum_percent = 0.70;
 
       plants[plantKey] = {
         key: m.plant,
