@@ -55,13 +55,23 @@ export class PubkeeperProvider extends React.Component {
 
   writeNozzlesToState = (data) => {
     const { plants, machines, nozzles } = this.state;
-    const json = new TextDecoder().decode(data);
-    const newData = JSON.parse(json);
 
-    let needToSortPlants = false;
-    let needToSortMachines = false;
+    let newData = false;
+    let json = false;
 
-    newData.map((m) => {
+    try {
+      json = new TextDecoder().decode(data);
+    } catch(e) {
+      console.log('could not TextDecode binary PK data', data, e)
+    }
+
+    try {
+      newData = JSON.parse(json);
+    } catch(e) {
+      console.log('decoded PK data string was not valid json', json, e)
+    }
+
+    newData && newData.map((m) => {
       const plantKey = m.plant;
       const machineKey = `${m.plant}-${m.machine}`;
       const nozzleKey = `${m.plant}-${m.machine}-${m.nozzle_id}`;
@@ -97,23 +107,35 @@ export class PubkeeperProvider extends React.Component {
 
   writeAlertsToState = (data) => {
     const { alerts } = this.state;
-    const json = new TextDecoder().decode(data);
-    const newData = JSON.parse(json)[0];
-    newData.id = `${newData.nozzle_id}-${newData.time}-${newData.description}`;
-    alerts.push(newData);
-    this.setState({ alerts });
+    try {
+      const json = new TextDecoder().decode(data);
+      const newData = JSON.parse(json)[0];
+      newData.id = `${newData.nozzle_id}-${newData.time}-${newData.description}`;
+      alerts.push(newData);
+      this.setState({ alerts });
+    } catch(e) {
+      console.log('bad alerts data', data, e)
+    }
   };
 
   writeThresholdsToState = (data) => {
-    const json = new TextDecoder().decode(data);
-    const thresholds = JSON.parse(json);
-    this.setState({ thresholds });
+    try {
+      const json = new TextDecoder().decode(data);
+      const thresholds = JSON.parse(json);
+      this.setState({ thresholds });
+    } catch(e) {
+      console.log('bad thresholds data', data, e)
+    }
   };
 
   writeNotificationNumbersToState = (data) => {
-    const json = new TextDecoder().decode(data);
-    const notification_numbers = JSON.parse(json);
-    this.setState({ notification_numbers });
+    try {
+      const json = new TextDecoder().decode(data);
+      const notification_numbers = JSON.parse(json);
+      this.setState({ notification_numbers });
+    } catch(e) {
+      console.log('bad notification numbers data', data, e)
+    }
   };
 
   togglePlant = (k, toFalse = false) => {
