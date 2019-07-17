@@ -144,7 +144,8 @@ export class PubkeeperProvider extends React.Component {
     const { plants } = this.state;
     const id = typeof k === 'object' ? k.currentTarget.getAttribute('data-id') : k;
     plants[id].visible = toFalse ? false : !plants[id].visible;
-    this.setState({ plants }, () => this.handlePlantCascade(id, plants[id].visible));
+    const current_program = {};
+    this.setState({ plants, current_program }, () => this.handlePlantCascade(id, plants[id].visible));
   };
 
   handlePlantCascade = (k, selecting = false) => {
