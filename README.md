@@ -52,3 +52,4 @@ Follow these steps to run the UI using a local dev webserver.
     npm run run-docker
     ```
 
+1. Visit the site at http://localhost:3000
