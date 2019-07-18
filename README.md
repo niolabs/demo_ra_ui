@@ -38,6 +38,18 @@ Follow these steps to run the UI using a local dev webserver.
 
 ## Building and Running the Docker Container
 
+1. Clone the repo to your local machine
+
+    ```
+    git clone https://github.com/niolabs/demo_ra_ui.git
+    ```
+
+1. Enter the project directory
+
+    ```
+    cd demo_ra_ui
+    ```
+
 1. Build the container from the command line at the root of the project
 
     ```
