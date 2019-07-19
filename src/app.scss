@@ -94,6 +94,12 @@
     }
   }
 }
+.fa-check.toggle-all {
+  color: $gray-lighter !important;
+  &:hover {
+    color: $brand-success !important;
+  }
+}
 
 
 #chart-holder {
@@ -117,6 +123,9 @@
   font-size: 10px;
 }
 
+.nozzle-row-holder {
+  height: 32px;
+}
 .nozzle-cell {
   width: 10%;
   white-space: nowrap;

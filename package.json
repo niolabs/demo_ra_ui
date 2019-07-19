@@ -20,7 +20,8 @@
     "react-dom": "^16.8.6",
     "react-input-mask": "^2.0.4",
     "react-router": "^5.0.1",
-    "react-router-dom": "^5.0.1"
+    "react-router-dom": "^5.0.1",
+    "react-visibility-sensor": "^5.1.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.0",

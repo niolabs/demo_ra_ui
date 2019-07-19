@@ -1,5 +1,6 @@
 import React from 'react';
 import { Row, Col, Loader } from '@nio/ui-kit';
+import VisibilitySensor from 'react-visibility-sensor';
 import { withNozzles } from '../providers/pubkeeper';
 import NozzleRow from './nozzleRow';
 
@@ -29,13 +30,13 @@ export default withNozzles(({ items, asc, sortBy, sort, toggle, showToggle, choo
       {choosingMachine || !items ? (
         <Loader />
       ) : items.map(n => (
-        <NozzleRow
-          key={n.key}
-          itemKey={n.key}
-          toggle={toggle}
-          showToggle={showToggle}
-          {...n}
-        />
+        <VisibilitySensor key={n.key}>
+          {({isVisible}) => isVisible ? (
+            <NozzleRow itemKey={n.key} toggle={toggle} showToggle={showToggle} {...n} />
+          ) : (
+            <div className="nozzle-row-holder" />
+          )}
+        </VisibilitySensor>
       ))}
     </div>
   </>

@@ -3,7 +3,9 @@ import { Chart } from '@nio/ui-kit';
 import { withGraphData } from '../providers/pubkeeper';
 import tooltip from '../util/tooltip';
 
-class BubbleChart extends React.PureComponent {
+class BubbleChart extends React.Component {
+  shouldComponentUpdate = (prevProps) => JSON.stringify(prevProps) !== JSON.stringify(this.props);
+
   state = {
     series: [{ data: [] }],
   };
@@ -44,6 +46,8 @@ class BubbleChart extends React.PureComponent {
   render = () => {
     const { series } = this.state;
     const placeholder = series.find(s => s.name === 'placeholder') || { x: 50, y: 100 };
+
+    //console.log('rendering bubble chart');
 
     return (
       <>

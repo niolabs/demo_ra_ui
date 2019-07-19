@@ -1,8 +1,9 @@
 import React from 'react';
 import { Row, Col } from '@nio/ui-kit';
+import VisibilitySensor from 'react-visibility-sensor';
 import { withMachines, withThresholds } from '../providers/pubkeeper';
 
-export default withMachines(withThresholds(({ items, toggle, thresholds }) => {
+export default withMachines(withThresholds(({ items, toggle, thresholds, toggleAll }) => {
 
   const fields = [
     { name: 'reject_quantity', label: 'Reject Qty', value: '' },
@@ -36,7 +37,7 @@ export default withMachines(withThresholds(({ items, toggle, thresholds }) => {
           <b>ID</b>
         </Col>
         <Col className="text-xs text-center threshold-cell">
-          <b>Update</b>
+          <i onClick={toggleAll} className="mr-1 fa fa-check toggle-all" />
         </Col>
         <Col className="text-xs threshold-cell" />
         {fields.map(f => (
@@ -47,20 +48,26 @@ export default withMachines(withThresholds(({ items, toggle, thresholds }) => {
       </Row>
       <div className="data-holder border-top chooser">
         {itemsWithThreshholds.map(i => (
-          <Row noGutters key={i.key} onClick={() => toggle(i.key)} className={`toggle-row border-bottom ${i.visible}`}>
-            <Col className="threshold-cell">
-              {i.id}
-            </Col>
-            <Col className="threshold-cell text-center">
-              <i className="mr-1 fa fa-check" />
-            </Col>
-            <Col className="threshold-cell" />
-            {fields.map(f => (
-              <Col className="threshold-cell" key={f.name}>
-                {i[f.name]}
-              </Col>
-            ))}
-          </Row>
+          <VisibilitySensor key={i.key}>
+            {({isVisible}) => isVisible ? (
+              <Row noGutters onClick={() => toggle(i.key, !i.visible, false)} className={`toggle-row border-bottom ${i.visible}`}>
+                <Col className="threshold-cell">
+                  {i.id}
+                </Col>
+                <Col className="threshold-cell text-center">
+                  <i className="mr-1 fa fa-check" />
+                </Col>
+                <Col className="threshold-cell" />
+                {fields.map(f => (
+                  <Col className="threshold-cell" key={f.name}>
+                    {i[f.name]}
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <div className="nozzle-row-holder" />
+            )}
+          </VisibilitySensor>
         ))}
       </div>
     </>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardBody, Col, Row, Form, Input, Button } from '@nio/ui-kit';
-import { withThresholds, withVisibleMachines } from '../providers/pubkeeper';
+import { withThresholds, withVisibleMachines, withToggleAll } from '../providers/pubkeeper';
 import Machines from '../components/threshholdChooser';
 import { Plants } from '../components/chooser';
 import Alerts from '../components/alerts';
@@ -89,7 +89,7 @@ class Thresholds extends React.Component {
   };
 
   render = () => {
-    const { items } = this.props;
+    const { items, toggleAllMachines, toggleAllPlants } = this.props;
     const { errors, formFields } = this.state;
 
     return (
@@ -101,11 +101,11 @@ class Thresholds extends React.Component {
           <hr />
           <Row>
             <Col xs="12" lg="2">
-              <Plants />
+              <Plants toggleAll={toggleAllPlants} />
               <hr className="mt-0 mb-4 d-block d-lg-none" />
             </Col>
             <Col xs="12" lg="10">
-              <Machines />
+              <Machines toggleAll={toggleAllMachines} />
             </Col>
           </Row>
           <hr className="mt-0 mb-4" />
@@ -141,4 +141,4 @@ class Thresholds extends React.Component {
   }
 }
 
-export default withVisibleMachines(withThresholds(Thresholds));
+export default withVisibleMachines(withThresholds(withToggleAll(Thresholds)));

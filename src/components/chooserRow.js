@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { Row, Col } from '@nio/ui-kit';
 
 export default memo(({ id, itemKey, toggle, visible }) => {
+  //console.log('rendering chooser row');
   return (
     <Row noGutters data-id={itemKey} onClick={toggle} className={`toggle-row border-bottom ${visible}`}>
       <Col xs="10">
