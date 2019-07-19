@@ -82,8 +82,8 @@ class Thresholds extends React.Component {
         { name: 'reject_sum_percent', label: 'Reject Sum %', placeholder: 'Enter %', value: '', step: '.1'},
         { name: 'slope', label: 'Slope', placeholder: 'Enter Slope', value: '', step: '.1'},
         { name: 'left_factor', label: 'Left Factor', placeholder: 'Enter Left Factor', value: '', step: '.1'},
-        { name: 'right_up_factor', label: 'Right Up Factor', placeholder: 'Enter', value: '', step: '.1'},
-        { name: 'left_up_factor', label: 'Left Up Factor', placeholder: 'Enter', value: '', step: '.1'},
+        { name: 'right_up_factor', label: 'Right Up Factor', placeholder: 'Enter Right Up Factor', value: '', step: '.1'},
+        { name: 'left_up_factor', label: 'Left Up Factor', placeholder: 'Enter Left Up Factor', value: '', step: '.1'},
       ]
     });
   };
