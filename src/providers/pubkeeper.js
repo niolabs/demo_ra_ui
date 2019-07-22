@@ -10,8 +10,8 @@ export class PubkeeperProvider extends React.Component {
   state = {
     plants: {},
     machines: {},
+    nozzles: {},
     alerts: [],
-    nozzles: { placeholder: { nozzle_id: 'placeholder', reject_sum_percent: 0, reject_sum: 0, reject_factor: 0 }},
     nozzleSort: { sortBy: 'nozzle_id', asc: true },
     thresholds: [],
     notification_numbers: [],
@@ -72,6 +72,8 @@ export class PubkeeperProvider extends React.Component {
     } catch(e) {
       //console.log('decoded PK data string was not valid json', json, e)
     }
+
+    console.log('newData', newData);
 
     newData && newData.map((m) => {
       const plantKey = m.plant;
@@ -218,7 +220,6 @@ export class PubkeeperProvider extends React.Component {
     const thisMachine = machines[`${n.plant}-${n.machine}`];
     const thisNozzle = n;
 
-    if (n.nozzle_id === 'placeholder') return true;
     if (!thisPlant || !thisMachine) return false;
     return atLeastOneNozzleIsSelected ? thisPlant.visible && thisMachine.visible && thisNozzle.visible : atLeastOneMachineIsSelected ? thisPlant.visible && thisMachine.visible : thisPlant.visible;
   };

@@ -4,8 +4,6 @@ import { withGraphData } from '../providers/pubkeeper';
 import tooltip from '../util/tooltip';
 
 class BubbleChart extends React.Component {
-  shouldComponentUpdate = (prevProps) => JSON.stringify(prevProps) !== JSON.stringify(this.props);
-
   state = {
     series: [{ data: [] }],
   };
@@ -33,12 +31,21 @@ class BubbleChart extends React.Component {
         machine: n.machine,
         reject_sum_percent: n.reject_sum_percent * 100,
         reject_sum: n.reject_sum,
-        reject_factor: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor,
-        x: n.nozzle_id === 'placeholder' ? maxX <= 50 ? 50 : Math.ceil(maxX / 10) * 10 : n.reject_sum_percent * 100,
-        y: n.nozzle_id === 'placeholder' ? maxY <= 100 ? 100 : Math.ceil(maxY / 10) * 10 : n.reject_sum,
-        z: n.nozzle_id === 'placeholder' ? 0 : n.reject_factor + (maxZ / 3)
+        reject_factor: n.reject_factor,
+        x: n.reject_sum_percent * 100,
+        y: n.reject_sum,
+        z: n.reject_factor + (maxZ / 3)
       }]
     }));
+
+    series.push({
+      name: 'placeholder',
+      data: [{
+        x: maxX <= 50 ? 50 : Math.ceil(maxX / 10) * 10,
+        y: maxY <= 100 ? 100 : Math.ceil(maxY / 10) * 10,
+        z: 0,
+      }]
+    });
 
     this.setState({ series });
   };
