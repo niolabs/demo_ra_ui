@@ -4,11 +4,17 @@ import InputMask from 'react-input-mask';
 import { withNotificationNumbers } from '../providers/pubkeeper';
 
 class Thresholds extends React.Component {
-  state = { newValues: { name: '', phone: '' }, errors: {} };
+  state = { newValues: { name: '', phone: '' }, errors: {}, local_numbers: [] };
+
+  static getDerivedStateFromProps = (props) => {
+    const { notification_numbers } = props;
+    console.log(notification_numbers);
+    return { local_numbers: notification_numbers };
+  };
 
   handleSubmit = () => {
-    const { notification_numbers, brewer } = this.props;
-    const { newValues } = this.state;
+    const { brewer } = this.props;
+    const { newValues, local_numbers } = this.state;
     const errors = {};
 
     if (!newValues.name) {
@@ -17,13 +23,14 @@ class Thresholds extends React.Component {
     if (!newValues.phone) {
       errors.phone = 'Valid Phone Required';
     }
-    if (notification_numbers.find(n => n.phone === newValues.phone)) {
+    if (local_numbers.find(n => n.phone === newValues.phone)) {
       errors.phone = 'Number Already Exists';
     }
 
     if(!Object.keys(errors).length) {
-      notification_numbers.push({ name: newValues.name, phone: newValues.phone });
-      brewer.brewJSON(notification_numbers);
+      local_numbers.push({ name: newValues.name, phone: newValues.phone });
+      brewer.brewJSON(local_numbers);
+      this.setState({ local_numbers });
       this.resetFields();
     } else {
       this.setState({ errors });
@@ -42,16 +49,21 @@ class Thresholds extends React.Component {
   };
 
   handleDelete = (e) => {
-    const { notification_numbers, brewer } = this.props;
+    const { brewer } = this.props;
+    const { local_numbers } = this.state;
     const numberToDelete = e.currentTarget.getAttribute('id');
-    const indexInNumberArray = notification_numbers.findIndex(n => n.phone === numberToDelete);
-    notification_numbers.splice(indexInNumberArray, 1);
-    brewer.brewJSON(notification_numbers);
+    const indexInNumberArray = local_numbers.findIndex(n => n.phone === numberToDelete);
+    local_numbers.splice(indexInNumberArray, 1);
+    if (!local_numbers.length) {
+      brewer.brewJSON([{ name: false, number: false }]);
+    } else {
+      brewer.brewJSON(local_numbers);
+    }
+    this.setState({ local_numbers });
   };
 
   render = () => {
-    const { notification_numbers } = this.props;
-    const { newValues, errors } = this.state;
+    const { newValues, errors, local_numbers } = this.state;
 
     return (
       <Card>
@@ -69,7 +81,7 @@ class Thresholds extends React.Component {
             </Col>
           </Row>
           <div className="data-holder no-height border-top chooser">
-            {notification_numbers.map(i => (
+            {local_numbers.map(i => i.name && i.phone && (
               <Row noGutters key={i.phone} data-id={i.phone} className="toggle-row border-bottom">
                 <Col xs="4" className="pt-2">
                   {i.name}
@@ -83,7 +95,7 @@ class Thresholds extends React.Component {
               </Row>
             ))}
           </div>
-          {notification_numbers && notification_numbers.length < 5 && (
+          {local_numbers && local_numbers.length < 6 && (
             <Row noGutters className="new-phone-row">
               <Col xs="4" className="pr-3">
                 <Input id="name" type="text" value={newValues.name} onChange={this.updateField} invalid={!!errors.name} />
