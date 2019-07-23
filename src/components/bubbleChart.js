@@ -51,7 +51,7 @@ class BubbleChart extends React.Component {
             type="bubble"
             height="100%"
             options={{
-              chart: { zoom: { enabled: false }, toolbar: { show: false } },
+              chart: { animations: { enabled: false }, zoom: { enabled: false }, toolbar: { show: false } },
               legend: { show: false },
               dataLabels: { enabled: false },
               xaxis: {
