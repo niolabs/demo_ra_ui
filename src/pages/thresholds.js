@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardBody, Col, Row, Form, Input, Button } from '@nio/ui-kit';
-import { withThresholds, withVisibleMachines, withToggleAll } from '../providers/pubkeeper';
+import { withThresholds, withMachines, withToggleAll, withActiveItems } from '../providers/pubkeeper';
 import Machines from '../components/threshholdChooser';
 import { Plants } from '../components/chooser';
 import Alerts from '../components/alerts';
@@ -13,8 +13,9 @@ class Thresholds extends React.Component {
   };
 
   handleSubmit = () => {
-    const { thresholds, brewer, items } = this.props;
+    const { thresholds, brewer, items, activeItems } = this.props;
     const { formFields } = this.state;
+    const activeMachines = items.filter(i => !!activeItems.machines[i.itemKey]).map(m => ({ id: m.name, plant: m.plantKey }));
     const errors = {};
     const newThresholdObject = {};
     this.setState({ errors });
@@ -25,11 +26,25 @@ class Thresholds extends React.Component {
     });
 
     if (!Object.keys(errors).length) {
-      // loop through existing thresholds and remove any of the selected machines from existing threshold sets
+      // loop through existing thresholds and delete any that have it as a top level machine
+      activeMachines.map(m => {
+        const existingMachineIndex = thresholds.findIndex(tn => tn.machine.plant === m.plant && tn.machine.id === m.id);
+        if (existingMachineIndex !== -1) {
+          //console.log('found machine in existing threshold for machine: ', m.plant, m.id);
+          thresholds.splice(existingMachineIndex, 1);
+        } else {
+          //console.log('did not find a top-level item with the same plant and id in any threhsold.machine field');
+        }
+      });
+
+      // loop through existing thresholds.machines and remove any of the selected machines from existing threshold sets
       thresholds.map(t => {
-        items.map(m => {
+        activeMachines.map(m => {
           const existingMachineIndex = t.machines.findIndex(tn => tn.plant === m.plant && tn.id === m.id);
-          if (existingMachineIndex !== -1) t.machines.splice(existingMachineIndex, 1);
+          if (existingMachineIndex !== -1) {
+            //console.log('found machine in existing threshold in machines: ', m.plant, m.id);
+            t.machines.splice(existingMachineIndex, 1);
+          }
         });
       });
 
@@ -38,17 +53,19 @@ class Thresholds extends React.Component {
 
       if (existingMatchingThresholdIndex !== -1) {
         // add the machine to the existing threshold set
-        items.map(m => {
+        activeMachines.map(m => {
           thresholds[existingMatchingThresholdIndex].machines.push(m);
         });
       } else {
-        // add the new threhsold set and the selected items thereto
-        thresholds.push({ ...newThresholdObject, machines: items });
+        // add the new threshold set and the selected items thereto
+        thresholds.push({ ...newThresholdObject, machines: activeMachines });
       }
 
       // send up the new threhsold array, filtering out any that have no machines associated therewith
-      brewer.brewJSON(thresholds.filter(t => !!t.machines.length));
+      const cleanThresholds = thresholds.filter(t => !!t.machines.length);
+      //console.log(cleanThresholds);
       this.resetFields();
+      brewer.brewJSON(thresholds.filter(t => !!t.machines.length));
     } else {
       this.setState({ errors });
     }
@@ -68,9 +85,7 @@ class Thresholds extends React.Component {
 
   updateField = (e) => {
     const { formFields } = this.state;
-    const newValue = e.target.value;
-    console.log(newValue);
-    formFields.find(f => f.name === e.target.getAttribute('id')).value = newValue;
+    formFields.find(f => f.name === e.target.getAttribute('id')).value = e.target.value;
     this.setState({ formFields });
   };
 
@@ -89,8 +104,12 @@ class Thresholds extends React.Component {
   };
 
   render = () => {
-    const { items, toggleAllMachines, toggleAllPlants } = this.props;
+    const { items, toggle, toggleAllMachines, toggleAllPlants, activeItems, thresholds } = this.props;
     const { errors, formFields } = this.state;
+
+    const activeMachines = items.filter(i => !!activeItems.machines[i.itemKey]);
+
+    //console.log(thresholds);
 
     return (
       <Card>
@@ -101,11 +120,11 @@ class Thresholds extends React.Component {
           <hr />
           <Row>
             <Col xs="12" lg="2">
-              <Plants toggleAll={toggleAllPlants} />
+              <Plants multi toggleAll={toggleAllPlants} />
               <hr className="mt-0 mb-4 d-block d-lg-none" />
             </Col>
             <Col xs="12" lg="10">
-              <Machines toggleAll={toggleAllMachines} />
+              <Machines items={items} toggle={toggle} thresholds={thresholds} toggleAll={toggleAllMachines} activeItems={activeItems} />
             </Col>
           </Row>
           <hr className="mt-0 mb-4" />
@@ -115,19 +134,19 @@ class Thresholds extends React.Component {
                 <b>New Thresholds</b>
                 <hr className="my-1" />
                 <div className="text-xs text-nowrap">
-                  <b>{items.length ? `${items.length} Machine${items.length !== 1 ? 's' : ''} will be updated with these thresholds` : 'You must select at least 1 machine to update'}</b>
+                  <b>{activeMachines.length ? `${activeMachines.length} Machine${activeMachines.length !== 1 ? 's' : ''} will be updated with these thresholds` : 'You must select at least 1 machine to update'}</b>
                 </div>
                 <div className="data-holder no-height border-top border-bottom mb-2 pb-4">
                   <Row>
                     {formFields && formFields.map(f => (
                       <Col xs="12" lg="4" key={f.name} className="text-nowrap mt-2">
                         <div className={`text-nowrap text-xs mb-1 ${errors[f.name] ? 'text-danger' : ''}`}><b>{errors[f.name] ? `${f.label} ${errors[f.name]}` : f.label}&nbsp;</b></div>
-                        <Input step={f.step} placeholder={f.placeholder} invalid={!!errors[f.name]} id={f.name} disabled={!items.length} value={f.value} type="number" onChange={this.updateField} />
+                        <Input step={f.step} placeholder={f.placeholder} invalid={!!errors[f.name]} id={f.name} disabled={!activeMachines.length} value={f.value} type="number" onChange={this.updateField} />
                       </Col>
                     ))}
                   </Row>
                 </div>
-                <Button onClick={this.handleSubmit} disabled={!items.length} block color="success">Save</Button>
+                <Button onClick={this.handleSubmit} disabled={!activeMachines.length} block color="success">Save</Button>
               </Form>
               <hr className="d-block d-lg-none" />
             </Col>
@@ -141,4 +160,4 @@ class Thresholds extends React.Component {
   }
 }
 
-export default withVisibleMachines(withThresholds(withToggleAll(Thresholds)));
+export default withMachines(withThresholds(withToggleAll(withActiveItems(Thresholds))));

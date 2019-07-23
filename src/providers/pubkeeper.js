@@ -1,29 +1,38 @@
 import React from 'react';
 import { PubkeeperClient, WebSocketBrew } from '@pubkeeper/browser-client';
 
-import sortNozzles from '../util/sortNozzles';
-import sortMachinesAndPlants from '../util/sortMachinesAndPlants';
-
 const PubkeeperContext = React.createContext();
+
+import NewDataWorker from 'worker-loader!../workers/newData';
 
 export class PubkeeperProvider extends React.Component {
   state = {
     plants: {},
     machines: {},
     nozzles: {},
+    active: {
+      plants: {},
+      machines: {},
+      nozzles: {},
+    },
+    sortedData: {
+      plants: [],
+      machines: [],
+      nozzles: [],
+    },
     alerts: [],
-    nozzleSort: { sortBy: 'nozzle_id', asc: true },
+    nozzleSort: { sortBy: 'name', asc: true },
     thresholds: [],
     notification_numbers: [],
-    current_program: {},
-    atLeastOneNozzleIsSelected: false,
-    atLeastOneMachineIsSelected: false,
+    currentProgram: {},
     alertDetail: false,
     allMachineToggle: false,
     allPlantToggle: false,
   };
 
   componentDidMount = async () => {
+    this.initializeWebWorker();
+
     this.pkClient = await new PubkeeperClient({
       server: `${window.PK_SECURE ? 'wss' : 'ws'}://${window.PK_HOST}:${window.PK_PORT}/ws`,
       jwt: window.PK_JWT,
@@ -40,14 +49,14 @@ export class PubkeeperProvider extends React.Component {
       return () => patron.off('message', this.writeAlertsToState);
     });
 
-    this.pkClient.addPatron('thresholds', (patron) => {
+    this.pkClient.addPatron('threshold_values', (patron) => {
       patron.on('message', this.writeThresholdsToState);
       return () => patron.off('message', this.writeThresholdsToState);
     });
 
     this.pkClient.addBrewer('thresholds', brewer => this.thresholdBrewer = brewer);
 
-    this.pkClient.addPatron('notification_numbers', (patron) => {
+    this.pkClient.addPatron('notification_numbers_values', (patron) => {
       patron.on('message', this.writeNotificationNumbersToState);
       return () => patron.off('message', this.writeNotificationNumbersToState);
     });
@@ -55,62 +64,26 @@ export class PubkeeperProvider extends React.Component {
     this.pkClient.addBrewer('notification_numbers', brewer => this.notificationNumberBrewer = brewer);
   };
 
-  writeNozzlesToState = (data) => {
-    const { plants, machines, nozzles } = this.state;
+  initializeWebWorker = () => {
+    this.Worker = new NewDataWorker();
+    this.Worker.onmessage = (event) => this.setState(event.data);
+  };
 
+  writeNozzlesToState = (data) => {
+    const { plants, machines, nozzles, active } = this.state;
     let newData = false;
     let json = false;
 
     try {
       json = new TextDecoder().decode(data);
-    } catch(e) {
-      //console.log('could not TextDecode binary PK data', data, e)
-    }
-
-    try {
       newData = JSON.parse(json);
     } catch(e) {
-      //console.log('decoded PK data string was not valid json', json, e)
+      console.log('malformed PK data', e)
     }
 
-    console.log('newData', newData);
+    if (Object.keys(plants).length) return false;
 
-    newData && newData.map((m) => {
-      const plantKey = m.plant;
-      const machineKey = `${m.plant}-${m.machine}`;
-      const nozzleKey = `${m.plant}-${m.machine}-${m.nozzle_id}`;
-
-      // if (nozzleKey === '1020-GC4-4-18')  m.reject_sum_percent = 0.70;
-
-      plants[plantKey] = {
-        key: m.plant,
-        id: m.plant,
-        visible: plants[plantKey] ? plants[plantKey].visible : false
-      };
-
-      machines[machineKey] = {
-        key: machineKey,
-        id: m.machine,
-        machine: m.machine,
-        plant: m.plant,
-        plantKey: plantKey,
-        visible: machines[machineKey] ? machines[machineKey].visible : false,
-        optel_schedule_wo: m.optel_schedule_wo,
-        side: m.side,
-        timestamp: m.timestamp.replace('.0000000Z', ''),
-      };
-
-      nozzles[nozzleKey] = {
-        ...m,
-        key: nozzleKey,
-        machineKey: machineKey,
-        placements: m.placements.cumulative_count,
-        picks: m.picks.cumulative_count,
-        visible: nozzles[nozzleKey] && nozzles[nozzleKey].visible || false
-      };
-    });
-
-    this.setState({ plants, machines, nozzles });
+    this.Worker.postMessage({ newData, plants, machines, nozzles });
   };
 
   writeAlertsToState = (data) => {
@@ -151,98 +124,98 @@ export class PubkeeperProvider extends React.Component {
     }
   };
 
-  togglePlant = (k, newValue = false, cascade = true) => {
-    const { plants, machines } = this.state;
-    const id = typeof k === 'object' ? k.currentTarget.getAttribute('data-id') : k;
-    plants[id].visible = typeof k === 'object' ? !plants[id].visible : newValue;
+  togglePlant = (e) => {
+    const { active } = this.state;
+    const id = e.currentTarget.getAttribute('data-id');
+    const multi = e.currentTarget.getAttribute('data-multi');
+    const newValue = !active.plants[id];
 
-    this.setState({ plants, current_program: {} });
-
-    if(cascade) {
-      if (plants[id].visible) {
-        Object.keys(plants).filter(p => p !== id).map(p => this.togglePlant(p, false));
-      } else {
-        Object.keys(machines).filter(m => machines[m].plantKey === id).map(m => this.toggleMachine(m, false));
-      }
+    if (!multi) {
+      active.plants = {};
+      active.machines = {};
+      active.nozzles = {};
     }
+
+    active.plants[id] = newValue;
+
+    this.setState({ active, currentProgram: {} });
   };
 
   toggleAllPlants = () => {
-    const { plants, allPlantToggle } = this.state;
-    Object.keys(plants).map(m => this.togglePlant(m, !allPlantToggle, false));
-    if (allPlantToggle) this.toggleAllMachines({ fromPlants: true });
-    this.setState({ allPlantToggle: !allPlantToggle });
-  };
+    const { active, plants, allPlantToggle } = this.state;
+    Object.keys(plants).map(k => active.plants[k] = !allPlantToggle);
 
-
-  toggleMachine = (k, newValue = false, cascade = true) => {
-    let { machines, nozzles } = this.state;
-    const id = typeof k === 'object' ? k.currentTarget.getAttribute('data-id') : k;
-    machines[id].visible = typeof k === 'object' ? !machines[id].visible : newValue;
-
-    this.setState({ machines });
-
-    if (cascade) {
-      if(machines[id].visible) {
-        Object.keys(machines).filter(m => m !== id).map(m => this.toggleMachine(m, false));
-        this.setState({ current_program: machines[id], atLeastOneMachineIsSelected: true });
-      } else {
-        Object.keys(nozzles).filter(n => nozzles[n].machineKey === id).map(n => this.toggleNozzle(n, false));
-        this.setState({ current_program: {}, atLeastOneMachineIsSelected: Object.values(machines).filter(m => m.visible).length });
-      }
+    if (allPlantToggle) {
+      active.machines = {};
+      active.nozzles = {};
     }
+
+    this.setState({ active, allPlantToggle: !allPlantToggle });
   };
 
-  toggleAllMachines = ({ fromPlants }) => {
-    const { machines, allMachineToggle } = this.state;
-    Object.keys(machines).map(m => this.toggleMachine(m, fromPlants ? false : !allMachineToggle, false));
-    this.setState({ allMachineToggle: !allMachineToggle });
+  toggleMachine = (e) => {
+    let { active, machines } = this.state;
+    const id = e.currentTarget.getAttribute('data-id');
+    const multi = e.currentTarget.getAttribute('data-multi');
+    const newValue = !active.machines[id];
+
+    const currentProgram = newValue ? machines[id] : {};
+
+    if (!multi) {
+      active.machines = {};
+      active.nozzles = {};
+    }
+
+    active.machines[id] = newValue;
+
+    this.setState({ active, currentProgram });
   };
 
-  toggleNozzle = (k, newValue = false) => {
-    const { nozzles, atLeastOneMachineIsSelected } = this.state;
-    const id = typeof k === 'object' ? k.currentTarget.getAttribute('data-id') : k;
-    nozzles[id].visible = typeof k === 'object' ? !nozzles[id].visible : newValue;
+  toggleAllMachines = () => {
+    const { active, machines, allMachineToggle } = this.state;
+    Object.keys(machines).map(k => active.machines[k] = !allMachineToggle);
 
-    if (!atLeastOneMachineIsSelected) return false;
+    if (allMachineToggle) {
+      active.nozzles = {};
+    }
 
-    this.setState({
-      nozzles,
-      atLeastOneNozzleIsSelected: Object.values(nozzles).filter(n => n.visible).length
-    });
+    this.setState({ active, allMachineToggle: !allMachineToggle });
   };
 
+  toggleNozzle = (e) => {
+    const { active } = this.state;
+    const id = e.currentTarget.getAttribute('data-id');
+    active.nozzles[id] = !active.nozzles[id];
 
-  filterGraphData = (n) => {
-    const { plants, machines, atLeastOneMachineIsSelected, atLeastOneNozzleIsSelected } = this.state;
+    if (!Object.values(active.machines).filter(n => n).length) return false;
 
-    const thisPlant = plants[n.plant];
-    const thisMachine = machines[`${n.plant}-${n.machine}`];
-    const thisNozzle = n;
-
-    if (!thisPlant || !thisMachine) return false;
-    return atLeastOneNozzleIsSelected ? thisPlant.visible && thisMachine.visible && thisNozzle.visible : atLeastOneMachineIsSelected ? thisPlant.visible && thisMachine.visible : thisPlant.visible;
+    this.setState({ active });
   };
 
-  filterTableData = (n) => {
-    const { plants, machines, atLeastOneMachineIsSelected } = this.state;
+  filterNozzles = (n) => {
+    const { active } = this.state;
 
-    const thisPlant = plants[n.plant];
-    const thisMachine = machines[`${n.plant}-${n.machine}`];
+    const thisPlant = !!active.plants[n.plantKey];
+    const thisMachine = !!active.machines[n.machineKey];
 
-    if (!thisPlant || !thisMachine) return false;
-    return atLeastOneMachineIsSelected ? thisPlant.visible && thisMachine.visible : thisPlant.visible;
+    const oneMachine = Object.values(active.machines).filter(n => n).length;
+
+    if (!thisPlant) return false;
+    return oneMachine ? thisPlant && thisMachine : thisPlant;
   };
 
-  filterAlertData = (n) => {
-    const { plants, machines, nozzles, atLeastOneMachineIsSelected, atLeastOneNozzleIsSelected } = this.state;
+  filterAlerts = (n) => {
+    const { active } = this.state;
 
-    const thisPlant = plants[n.plant];
-    const thisMachine = machines[`${n.plant}-${n.machine}`];
-    const thisNozzle = nozzles[`${n.plant}-${n.machine}-${n.nozzle_id}`];
+    const thisPlant = !!active.plants[n.plant];
+    const thisMachine = !!active.machines[`${n.plant}-${n.machine}`];
+    const thisNozzle = !!active.nozzles[n.name];
 
-    if (!thisPlant || !thisMachine || !thisNozzle) return false;
-    return atLeastOneNozzleIsSelected ? thisPlant.visible && thisMachine.visible && thisNozzle.visible : atLeastOneMachineIsSelected ? thisPlant.visible && thisMachine.visible : thisPlant.visible;
+    const oneNozzle = Object.values(active.nozzles).filter(n => n).length;
+    const oneMachine = Object.values(active.machines).filter(n => n).length;
+    const onePlant = Object.values(active.plants).filter(n => n).length;
+
+    return oneNozzle ? thisPlant && thisMachine && thisNozzle : oneMachine ? thisPlant && thisMachine : onePlant ? thisPlant : true;
   };
 
   setNozzleSort = (e) => {
@@ -254,11 +227,7 @@ export class PubkeeperProvider extends React.Component {
   };
 
   resetSortAndFilter = () => {
-    const { nozzles, machines, plants } = this.state;
-    Object.values(nozzles).map(i => i.visible = false);
-    Object.values(machines).map(i => i.visible = false);
-    Object.values(plants).map(i => i.visible = false);
-    this.setState({ nozzles, machines, plants, nozzleSort: { sortBy: 'nozzle_id', asc: true }})
+    this.setState({ active: { plants: {}, machines: {}, nozzles: {} }, nozzleSort: { sortBy: 'nozzle_id', asc: true }});
   };
 
   toggleAlertDetail = (e) => {
@@ -277,9 +246,8 @@ export class PubkeeperProvider extends React.Component {
         toggleMachine: this.toggleMachine,
         toggleNozzle: this.toggleNozzle,
         setNozzleSort: this.setNozzleSort,
-        filterGraphData: this.filterGraphData,
-        filterTableData: this.filterTableData,
-        filterAlertData: this.filterAlertData,
+        filterNozzles: this.filterNozzles,
+        filterAlerts: this.filterAlerts,
         toggleAlertDetail: this.toggleAlertDetail,
         toggleAllMachines: this.toggleAllMachines,
         toggleAllPlants: this.toggleAllPlants,
@@ -294,27 +262,6 @@ export class PubkeeperProvider extends React.Component {
   };
 }
 
-export const withGraphData = Component => () => (
-  <PubkeeperContext.Consumer>
-    {({ nozzles, filterGraphData }) => {
-
-      const items = Object.values(nozzles).filter(n => filterGraphData(n));
-      const maxX = Math.max(...items.map(n => n.reject_sum_percent), 0.50);
-      const maxY = Math.max(...items.map(n => n.reject_sum), 100);
-      const maxZ = Math.max(...items.map(n => n.reject_factor));
-
-      return (
-        <Component
-          items={items}
-          maxX={maxX * 100}
-          maxY={maxY}
-          maxZ={maxZ}
-        />
-      );
-    }}
-  </PubkeeperContext.Consumer>
-);
-
 export const withThresholds = Component => props => (
   <PubkeeperContext.Consumer>
     {({ thresholds, thresholdBrewer }) =>
@@ -327,16 +274,14 @@ export const withThresholds = Component => props => (
   </PubkeeperContext.Consumer>
 );
 
-export const withNozzles = Component => () => (
+export const withNozzles = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ nozzles, setNozzleSort, nozzleSort: { asc, sortBy }, toggleNozzle, filterTableData, atLeastOneMachineIsSelected }) =>
+    {({ nozzles, toggleNozzle, filterNozzles, active }) =>
       <Component
-        items={Object.values(nozzles).filter(n => filterTableData(n)).sort((a, b) => sortNozzles({ a, b, asc, sortBy }))}
-        asc={asc}
-        sortBy={sortBy}
-        sort={setNozzleSort}
+        {...props}
+        items={Object.values(nozzles).filter(filterNozzles)}
         toggle={toggleNozzle}
-        showToggle={atLeastOneMachineIsSelected}
+        activeItems={active}
       />
     }
   </PubkeeperContext.Consumer>
@@ -344,11 +289,11 @@ export const withNozzles = Component => () => (
 
 export const withPlants = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ plants, togglePlant, sortMachinesAndPlants }) =>
+    {({ sortedData: { plants }, togglePlant }) =>
       <Component
         {...props}
         label="Plants"
-        items={Object.values(plants).sort(sortMachinesAndPlants)}
+        items={plants}
         toggle={togglePlant}
       />
     }
@@ -357,11 +302,11 @@ export const withPlants = Component => props => (
 
 export const withMachines = Component => props => (
   <PubkeeperContext.Consumer>
-    {({ machines, plants, toggleMachine }) =>
+    {({ sortedData: { machines }, active, toggleMachine }) =>
       <Component
         {...props}
         label="Machines"
-        items={Object.values(machines).filter(k => plants[k.plant].visible).sort((a, b) => sortMachinesAndPlants({ a, b }))}
+        items={machines.filter(k => active.plants[k.plantKey])}
         toggle={toggleMachine}
       />
     }
@@ -380,21 +325,11 @@ export const withToggleAll = Component => props => (
   </PubkeeperContext.Consumer>
 );
 
-export const withVisibleMachines = Component => () => (
-  <PubkeeperContext.Consumer>
-    {({ machines, plants }) =>
-      <Component
-        items={Object.values(machines).filter(k => plants[k.plant].visible && k.visible).map(i => ({ id: i.id, plant: i.plant })).sort((a, b) => sortMachinesAndPlants({ a, b }))}
-      />
-    }
-  </PubkeeperContext.Consumer>
-);
-
 export const withAlerts = Component => () => (
   <PubkeeperContext.Consumer>
-    {({ alerts, filterAlertData, alertDetail, toggleAlertDetail }) =>
+    {({ alerts, filterAlerts, alertDetail, toggleAlertDetail }) =>
       <Component
-        alerts={alerts.filter(n => filterAlertData(n))}
+        alerts={alerts.filter(filterAlerts)}
         alertDetail={alertDetail}
         toggleAlertDetail={toggleAlertDetail}
       />
@@ -413,6 +348,30 @@ export const withNotificationNumbers = Component => () => (
   </PubkeeperContext.Consumer>
 );
 
+export const withSort = Component => props => (
+  <PubkeeperContext.Consumer>
+    {({ setNozzleSort, nozzleSort: { asc, sortBy } }) =>
+      <Component
+        {...props}
+        asc={asc}
+        sortBy={sortBy}
+        sort={setNozzleSort}
+      />
+    }
+  </PubkeeperContext.Consumer>
+);
+
+export const withActiveItems = Component => props => (
+  <PubkeeperContext.Consumer>
+    {({ active }) =>
+      <Component
+        {...props}
+        activeItems={active}
+      />
+    }
+  </PubkeeperContext.Consumer>
+);
+
 export const withSortAndFilterReset = Component => () => (
   <PubkeeperContext.Consumer>
     {({ resetSortAndFilter }) =>
@@ -425,9 +384,9 @@ export const withSortAndFilterReset = Component => () => (
 
 export const withCurrentProgram = Component => () => (
   <PubkeeperContext.Consumer>
-    {({ current_program }) =>
+    {({ currentProgram }) =>
       <Component
-        {...current_program}
+        {...currentProgram}
       />
     }
   </PubkeeperContext.Consumer>

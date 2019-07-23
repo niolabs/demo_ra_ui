@@ -1,10 +1,10 @@
 import React from 'react';
 import { Row, Col} from '@nio/ui-kit';
 import VisibilitySensor from 'react-visibility-sensor';
-import { withPlants, withMachines } from '../providers/pubkeeper';
+import { withPlants, withMachines, withActiveItems } from '../providers/pubkeeper';
 import ChooserRow from './chooserRow';
 
-const chooser = ({ label, items, toggle, toggleAll }) => {
+const chooser = ({ label, items, toggle, toggleAll, activeItems, multi }) => {
   return (
     <>
       <b>{label}</b>
@@ -27,12 +27,14 @@ const chooser = ({ label, items, toggle, toggleAll }) => {
             Please select a plant.
           </div>
         ) : items.map(i => (
-          <VisibilitySensor key={i.key}>
+          <VisibilitySensor key={i.itemKey}>
             {({isVisible}) => isVisible ? (
               <ChooserRow
-                itemKey={i.key}
-                id={i.id}
-                visible={i.visible}
+                itemKey={i.itemKey}
+                multi={multi}
+                name={i.name}
+                plantKey={i.plantKey}
+                active={label === 'Plants' ? !!activeItems.plants[i.itemKey] : !!activeItems.machines[i.itemKey]}
                 toggle={toggle}
               />
             ) : (
@@ -46,8 +48,8 @@ const chooser = ({ label, items, toggle, toggleAll }) => {
   );
 };
 
-const Plants = withPlants(chooser);
+const Plants = withPlants(withActiveItems(chooser));
 
-const Machines = withMachines(chooser);
+const Machines = withMachines(withActiveItems(chooser));
 
 export { Plants, Machines };

@@ -1,9 +1,8 @@
 import React from 'react';
 import { Row, Col } from '@nio/ui-kit';
 import VisibilitySensor from 'react-visibility-sensor';
-import { withMachines, withThresholds } from '../providers/pubkeeper';
 
-export default withMachines(withThresholds(({ items, toggle, thresholds, toggleAll }) => {
+export default ({ items, toggle, thresholds, toggleAll, activeItems }) => {
 
   const fields = [
     { name: 'reject_quantity', label: 'Reject Qty', value: '' },
@@ -24,7 +23,7 @@ export default withMachines(withThresholds(({ items, toggle, thresholds, toggleA
   };
 
   const itemsWithThreshholds = items.map(i => {
-    const thresholdThatContainsThisItem = thresholds.find(t => t.machines.findIndex(m => m.plant === i.plant && m.id === i.id) !== -1);
+    const thresholdThatContainsThisItem = thresholds.find(t => t.machines.findIndex(m => m.plant === i.plantKey && m.id === i.name) !== -1);
     return thresholdThatContainsThisItem ? { ...thresholdThatContainsThisItem, ...i } : { ...emptyFieldValues, ...i };
   });
 
@@ -48,11 +47,11 @@ export default withMachines(withThresholds(({ items, toggle, thresholds, toggleA
       </Row>
       <div className="data-holder border-top chooser">
         {itemsWithThreshholds.map(i => (
-          <VisibilitySensor key={i.key}>
+          <VisibilitySensor key={i.itemKey}>
             {({isVisible}) => isVisible ? (
-              <Row noGutters onClick={() => toggle(i.key, !i.visible, false)} className={`toggle-row border-bottom ${i.visible}`}>
+              <Row noGutters data-multi={true} data-id={i.itemKey} onClick={toggle} className={`toggle-row border-bottom ${!!activeItems.machines[i.itemKey]}`}>
                 <Col className="threshold-cell">
-                  {i.id}
+                  {i.name}
                 </Col>
                 <Col className="threshold-cell text-center">
                   <i className="mr-1 fa fa-check" />
@@ -72,4 +71,4 @@ export default withMachines(withThresholds(({ items, toggle, thresholds, toggleA
       </div>
     </>
   )
-}));
+};

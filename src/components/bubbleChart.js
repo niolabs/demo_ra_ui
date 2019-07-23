@@ -1,60 +1,43 @@
 import React from 'react';
 import { Chart } from '@nio/ui-kit';
-import { withGraphData } from '../providers/pubkeeper';
+import { withNozzles } from '../providers/pubkeeper';
 import tooltip from '../util/tooltip';
+
+import BubbleChartWorker from 'worker-loader!../workers/bubbleChart';
 
 class BubbleChart extends React.Component {
   state = {
     series: [{ data: [] }],
+    currentItems: [],
+    currentActiveItems: {},
   };
 
-  componentDidUpdate = (prevProps) => {
-    const { items, maxX, maxY, maxZ } = this.props;
+  componentDidMount = async () => {
+    this.initializeWebWorker();
+  };
+
+  initializeWebWorker = () => {
+    this.Worker = new BubbleChartWorker();
+    this.Worker.onmessage = (event) => this.setState(event.data);
+  };
+
+  componentDidUpdate = () => {
+    const { activeItems, items } = this.props;
+    const { currentItems, currentActiveItems } = this.state;
+
     if (
-      (prevProps.maxX !== maxX) ||
-      (prevProps.maxY !== maxY) ||
-      (prevProps.maxZ !== maxZ) ||
-      (JSON.stringify(prevProps.items) !== JSON.stringify(items))
+      (currentItems.length !== items.length) ||
+      (JSON.stringify(currentItems) !== JSON.stringify(items)) ||
+      (JSON.stringify(currentActiveItems) !== JSON.stringify(activeItems))
     ) {
-      console.log('updating');
-      this.generateGraphSeries(items, maxX, maxY, maxZ);
+      //console.log('updating bubbleChart');
+      this.Worker.postMessage({ activeItems, items });
     }
-  };
-
-
-
-  generateGraphSeries = (items, maxX, maxY, maxZ) => {
-    const series = items.map(n => ({
-      name: n.nozzle_id,
-      data: [{
-        plant: n.plant,
-        machine: n.machine,
-        reject_sum_percent: n.reject_sum_percent * 100,
-        reject_sum: n.reject_sum,
-        reject_factor: n.reject_factor,
-        x: n.reject_sum_percent * 100,
-        y: n.reject_sum,
-        z: n.reject_factor + (maxZ / 3)
-      }]
-    }));
-
-    series.push({
-      name: 'placeholder',
-      data: [{
-        x: maxX <= 50 ? 50 : Math.ceil(maxX / 10) * 10,
-        y: maxY <= 100 ? 100 : Math.ceil(maxY / 10) * 10,
-        z: 0,
-      }]
-    });
-
-    this.setState({ series });
   };
 
   render = () => {
     const { series } = this.state;
-    const placeholder = series.find(s => s.name === 'placeholder') || { x: 50, y: 100 };
-
-    //console.log('rendering bubble chart');
+    const maxaxis = series.find(s => s.name === 'maxaxis') || { x: 50, y: 100 };
 
     return (
       <>
@@ -73,14 +56,14 @@ class BubbleChart extends React.Component {
               dataLabels: { enabled: false },
               xaxis: {
                 min: 0,
-                max: placeholder.x,
+                max: maxaxis.x,
                 tickAmount: 5,
                 labels: { formatter: val => `${val.toFixed(0)}%`, align: 'center', offsetX: -5 },
                 title: { text: 'reject sum %' },
               },
               yaxis: {
                 min: 0,
-                max: placeholder.y,
+                max: maxaxis.y,
                 tickAmount: 5,
                 labels: { formatter: val => val.toFixed(0) },
                 title: { text: 'reject sum' },
@@ -102,5 +85,5 @@ class BubbleChart extends React.Component {
   }
 }
 
-export default withGraphData(BubbleChart);
+export default withNozzles(BubbleChart);
 

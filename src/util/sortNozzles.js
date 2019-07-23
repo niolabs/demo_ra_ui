@@ -1,10 +1,9 @@
 const sortNozzles = ({ a, b, asc, sortBy}) => {
   try {
+    const sortA = sortBy === 'name' ? a[sortBy].split('-') : a[sortBy].toString();
+    const sortB = sortBy === 'name' ? b[sortBy].split('-') : b[sortBy].toString();
 
-    const sortA = sortBy === 'nozzle_id' ? a[sortBy].split('-') : a[sortBy].toString();
-    const sortB = sortBy === 'nozzle_id' ? b[sortBy].split('-') : b[sortBy].toString();
-
-    if (sortBy === 'nozzle_id') {
+    if (sortBy === 'name') {
       if (!(sortA[0] - sortB[0])) {
         return asc ? sortA[1] - sortB[1] : sortB[1] - sortA[1];
       }
@@ -14,7 +13,7 @@ const sortNozzles = ({ a, b, asc, sortBy}) => {
 
   } catch (e) {
 
-    console.log(`Nozzle sort failed. Missing ${sortBy}`, e);
+    //console.log(`Nozzle sort failed. Missing ${sortBy}`, e);
     return 0;
 
   }

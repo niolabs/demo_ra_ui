@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardBody, Row, Col } from '@nio/ui-kit';
 import Alerts from '../components/alerts';
 import Nozzles from '../components/nozzles';
-import BubbleChart from '../components/bubblechart';
+import BubbleChart from '../components/bubbleChart';
 import CurrentProgram from '../components/currentProgram';
 import { Plants, Machines } from '../components/chooser';
 

@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { Row, Col } from '@nio/ui-kit';
 import { withCurrentProgram } from '../providers/pubkeeper';
 
-export default withCurrentProgram(memo(({ machine, optel_schedule_wo, side, timestamp }) => (
+export default withCurrentProgram(memo(({ name, optel_schedule_wo, side, timestamp }) => (
   <div className="my-3 py-2 border-top border-bottom">
     <Row style={{ lineHeight: 1 }}>
       <Col lg="3" className="text-nowrap text-center text-lg-left">
@@ -10,7 +10,7 @@ export default withCurrentProgram(memo(({ machine, optel_schedule_wo, side, time
         <hr className="my-2 d-block d-lg-none" />
       </Col>
       <Col lg="2" className="text-nowrap text-center">
-        <b>{machine || '-'}</b><br />
+        <b>{name || '-'}</b><br />
         <span className="text-xs">machine</span>
         <hr className="my-2 d-block d-lg-none" />
       </Col>
