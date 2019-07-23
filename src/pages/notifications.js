@@ -55,7 +55,7 @@ class Thresholds extends React.Component {
     const indexInNumberArray = local_numbers.findIndex(n => n.phone === numberToDelete);
     local_numbers.splice(indexInNumberArray, 1);
     if (!local_numbers.length) {
-      brewer.brewJSON([{ name: false, number: false }]);
+      brewer.brewJSON([{ name: false, phone: false }]);
     } else {
       brewer.brewJSON(local_numbers);
     }
