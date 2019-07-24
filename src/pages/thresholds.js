@@ -26,17 +26,6 @@ class Thresholds extends React.Component {
     });
 
     if (!Object.keys(errors).length) {
-      // loop through existing thresholds and delete any that have it as a top level machine
-      activeMachines.map(m => {
-        const existingMachineIndex = thresholds.findIndex(tn => tn.machine.plant === m.plant && tn.machine.id === m.id);
-        if (existingMachineIndex !== -1) {
-          //console.log('found machine in existing threshold for machine: ', m.plant, m.id);
-          thresholds.splice(existingMachineIndex, 1);
-        } else {
-          //console.log('did not find a top-level item with the same plant and id in any threhsold.machine field');
-        }
-      });
-
       // loop through existing thresholds.machines and remove any of the selected machines from existing threshold sets
       thresholds.map(t => {
         activeMachines.map(m => {

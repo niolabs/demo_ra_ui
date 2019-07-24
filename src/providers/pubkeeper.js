@@ -113,7 +113,6 @@ export class PubkeeperProvider extends React.Component {
     try {
       const json = new TextDecoder().decode(data);
       const thresholds = JSON.parse(json);
-      console.log(thresholds);
       this.setState({ thresholds });
     } catch(e) {
       console.log('bad thresholds data', data, e)
