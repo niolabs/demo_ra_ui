@@ -24,11 +24,11 @@ export default withAlerts(({ alerts, alertDetail, toggleAlertDetail }) => {
           <b>Description</b>
         </Col>
       </Row>
-      <div className="data-holder border-top">
-        {alerts.length ? alerts.map(a => (
+      <div id="alerts-holder" className="data-holder border-top">
+        {alerts.length ? alerts.sort((a, b) => a.time < b.time ? 1 : -1).map(a => (
           <Row key={`${a.nozzle_id}-${a.time}-${a.description}`} id={`${a.nozzle_id}-${a.time}-${a.description}`} onClick={toggleAlertDetail} className="alert-row border-bottom">
             <Col xs="4" className="text-nowrap">
-              {a.time.replace('.0000000Z', '')}
+              {a.time.replace('.0000000Z', '').replace('T', ' ').replace('Z', ' ')}
             </Col>
             <Col xs="1" className="text-center text-nowrap">
               {a.plant}
@@ -44,7 +44,7 @@ export default withAlerts(({ alerts, alertDetail, toggleAlertDetail }) => {
             </Col>
           </Row>
         )) : (
-          <div className="text-center pt-5">no alerts</div>
+          <div className="text-center text-xs pt-5">Loading alerts...</div>
         )}
       </div>
       <Modal isOpen={!!alertDetail} toggle={toggleAlertDetail}>

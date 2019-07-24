@@ -23,7 +23,7 @@ const processNewData = ({ newData, plants, machines, nozzles }) => {
       plantKey: plantKey,
       optel_schedule_wo: m.optel_schedule_wo,
       side: m.side,
-      timestamp: m.timestamp.replace('.0000000Z','').replace('T',' '),
+      timestamp: m.timestamp.replace('.0000000Z','').replace('T',' ').replace('Z', ' '),
     };
 
     nozzles[nozzleKey] = {

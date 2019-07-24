@@ -49,6 +49,11 @@ export class PubkeeperProvider extends React.Component {
       return () => patron.off('message', this.writeAlertsToState);
     });
 
+    this.pkClient.addPatron('alerts_buffer', (patron) => {
+      patron.on('message', this.writeAlertsToState);
+      return () => patron.off('message', this.writeAlertsToState);
+    });
+
     this.pkClient.addPatron('threshold_values', (patron) => {
       patron.on('message', this.writeThresholdsToState);
       return () => patron.off('message', this.writeThresholdsToState);
@@ -108,6 +113,7 @@ export class PubkeeperProvider extends React.Component {
     try {
       const json = new TextDecoder().decode(data);
       const thresholds = JSON.parse(json);
+      console.log(thresholds);
       this.setState({ thresholds });
     } catch(e) {
       console.log('bad thresholds data', data, e)
