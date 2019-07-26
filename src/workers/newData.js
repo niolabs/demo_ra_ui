@@ -39,6 +39,7 @@ const processNewData = ({ newData, plants, machines, nozzles }) => {
       reject_sum: m.reject_sum,
       reject_sum_percent: m.reject_sum_percent,
       reject_factor: m.reject_factor,
+      optel_schedule_wo: m.optel_schedule_wo,
     };
   });
 

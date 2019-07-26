@@ -198,15 +198,16 @@ export class PubkeeperProvider extends React.Component {
   };
 
   filterNozzles = (n) => {
-    const { active } = this.state;
+    const { active, currentProgram } = this.state;
 
     const thisPlant = !!active.plants[n.plantKey];
     const thisMachine = !!active.machines[n.machineKey];
+    const thisProgram = n.optel_schedule_wo == currentProgram.optel_schedule_wo;
 
     const oneMachine = Object.values(active.machines).filter(n => n).length;
 
     if (!thisPlant) return false;
-    return oneMachine ? thisPlant && thisMachine : thisPlant;
+    return oneMachine ? thisPlant && thisMachine && thisProgram : thisPlant;
   };
 
   filterAlerts = (n) => {
