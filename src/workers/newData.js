@@ -1,6 +1,6 @@
 import sortMachinesAndPlants from '../util/sortMachinesAndPlants';
 
-const processNewData = ({ newData, plants, machines, nozzles }) => {
+const processNewData = ({ newData, plants, machines, nozzles, owo }) => {
   let shouldSortPlants = false;
   let shouldSortMachines = false;
 
@@ -23,7 +23,6 @@ const processNewData = ({ newData, plants, machines, nozzles }) => {
       plantKey: plantKey,
       optel_schedule_wo: m.optel_schedule_wo,
       side: m.side,
-      timestamp: m.timestamp.replace('.0000000Z','').replace('T',' ').replace('Z', ' '),
     };
 
     nozzles[nozzleKey] = {
@@ -41,9 +40,11 @@ const processNewData = ({ newData, plants, machines, nozzles }) => {
       reject_factor: m.reject_factor,
       optel_schedule_wo: m.optel_schedule_wo,
     };
+
+    owo[m.optel_schedule_wo] = m.timestamp.replace('.0000000Z','').replace('T',' ').replace('Z', ' ');
   });
 
-  const returnObject = { plants, machines, nozzles };
+  const returnObject = { plants, machines, nozzles, owo };
 
   if (shouldSortMachines || shouldSortPlants) {
     returnObject.sortedData = {};

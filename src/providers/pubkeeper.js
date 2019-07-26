@@ -10,6 +10,7 @@ export class PubkeeperProvider extends React.Component {
     plants: {},
     machines: {},
     nozzles: {},
+    owo: {},
     active: {
       plants: {},
       machines: {},
@@ -75,7 +76,7 @@ export class PubkeeperProvider extends React.Component {
   };
 
   writeNozzlesToState = (data) => {
-    const { plants, machines, nozzles, active } = this.state;
+    const { plants, machines, nozzles, owo } = this.state;
     let newData = false;
     let json = false;
 
@@ -88,7 +89,7 @@ export class PubkeeperProvider extends React.Component {
 
     if (Object.keys(plants).length) return false;
 
-    this.Worker.postMessage({ newData, plants, machines, nozzles });
+    this.Worker.postMessage({ newData, plants, machines, nozzles, owo });
   };
 
   writeAlertsToState = (data) => {
@@ -159,12 +160,14 @@ export class PubkeeperProvider extends React.Component {
   };
 
   toggleMachine = (e) => {
-    let { active, machines } = this.state;
+    let { active, machines, owo } = this.state;
     const id = e.currentTarget.getAttribute('data-id');
     const multi = e.currentTarget.getAttribute('data-multi');
     const newValue = !active.machines[id];
 
-    const currentProgram = newValue ? machines[id] : {};
+    const currentProgram = newValue ? { ...machines[id], timestamp: owo[machines[id].optel_schedule_wo].replace('.0000000Z','').replace('T',' ').replace('Z', ' ') } : {};
+
+    console.log(owo, currentProgram);
 
     if (!multi) {
       active.machines = {};
@@ -202,7 +205,7 @@ export class PubkeeperProvider extends React.Component {
 
     const thisPlant = !!active.plants[n.plantKey];
     const thisMachine = !!active.machines[n.machineKey];
-    const thisProgram = n.optel_schedule_wo == currentProgram.optel_schedule_wo;
+    const thisProgram = n.optel_schedule_wo === currentProgram.optel_schedule_wo;
 
     const oneMachine = Object.values(active.machines).filter(n => n).length;
 
@@ -233,7 +236,7 @@ export class PubkeeperProvider extends React.Component {
   };
 
   resetSortAndFilter = () => {
-    this.setState({ active: { plants: {}, machines: {}, nozzles: {} }, nozzleSort: { sortBy: 'nozzle_id', asc: true }});
+    this.setState({ active: { plants: {}, machines: {}, nozzles: {} }, currentProgram: {}, nozzleSort: { sortBy: 'nozzle_id', asc: true }});
   };
 
   toggleAlertDetail = (e) => {
